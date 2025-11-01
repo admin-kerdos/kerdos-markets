@@ -1,0 +1,30 @@
+
+.header {
+  position: sticky;
+  top: 8px;
+  left: 0;
+  width: 100%;
+  z-index: 1000;
+  background: var(--color-bg);
+  display: flex;
+  justify-content: center;
+  box-sizing: border-box;
+  border-bottom: 0 !important;
+  margin-top: 0 !important;
+  padding-top: 0.5rem !important;
+}
+
+.inner {
+  width: min(100%, 1450px);
+  padding-inline: clamp(16px, 3vw, 32px);
+  padding-block: 0 !important;
+  box-sizing: border-box;
+  margin-top: 0 !important;
+}
+
+@media (max-width: 1280px) and (min-width: 768px) {
+  .inner {
+    width: min(100%, 1200px);
+    padding-inline: clamp(12px, 2.5vw, 24px);
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "name": "@kerdos/web",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "next dev -p 5173",
+    "build": "next build",
+    "build:next": "next build",
+    "start": "next start -p 5173",
+    "start:next": "next start -p 5173",
+    "test:e2e": "playwright test",
+    "seed:local": "node --loader ts-node/esm --no-warnings scripts/seed-local.ts",
+    "seed:markets": "node --loader ts-node/esm --no-warnings scripts/seed-markets.ts"
+  },
+  "dependencies": {
+    "@coral-xyz/anchor": "0.31.1",
+    "@kerdos/sdk": "0.1.0",
+    "@solana/wallet-adapter-react": "0.15.39",
+    "@solana/wallet-adapter-react-ui": "0.9.39",
+    "@solana/wallet-adapter-wallets": "0.19.37",
+    "@solana/web3.js": "1.98.4",
+    "bn.js": "5.2.1",
+    "buffer": "6.0.3",
+    "framer-motion": "12.23.24",
+    "next": "14.2.10",
+    "react": "18.2.0",
+    "react-dom": "18.2.0",
+    "recharts": "2.12.7"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.48.2",
+    "@types/node": "20.16.11",
+    "@types/react": "18.3.11",
+    "@types/react-dom": "18.3.0",
+    "dotenv": "16.4.5",
+    "typescript": "5.9.3"
+  }
+}

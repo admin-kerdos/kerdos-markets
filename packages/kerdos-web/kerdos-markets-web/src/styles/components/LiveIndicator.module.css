@@ -1,0 +1,21 @@
+@layer components {
+  .root {
+    position: relative;
+    display: inline-block;
+    width: var(--space-2);
+    height: var(--space-2);
+    border-radius: 999px;
+    background: var(--color-brand);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-brand) 35%, transparent);
+  }
+
+  .root::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: var(--color-brand);
+    opacity: 0.5;
+    animation: pulse-live 1.6s ease-out infinite;
+  }
+}

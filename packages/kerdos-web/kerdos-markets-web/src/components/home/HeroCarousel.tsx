@@ -1,0 +1,230 @@
+"use client";
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useRouter } from "next/navigation";
+import type { HistoryPoint, UiMarket } from "@/lib/markets";
+import styles from "@/styles/components/HeroCarousel.module.css";
+import SearchBar from "@/components/ui/SearchBar";
+import { createHeroSegments } from "./hero-segments";
+import { useHeroCarouselContext } from "./HeroCarouselContext";
+
+type HeroVariant = "full" | "header" | "content";
+
+type Props = {
+  markets: UiMarket[];
+  brand: ReactNode;
+  actions: ReactNode;
+  variant?: HeroVariant;
+  showDivider?: boolean;
+};
+
+export default function HeroCarousel({ markets, brand, actions, variant = "content", showDivider = false }: Props) {
+  const router = useRouter();
+  const sharedContext = useHeroCarouselContext();
+  const localSegments = useMemo(() => createHeroSegments(markets), [markets]);
+  const segments = sharedContext?.segments ?? localSegments;
+  const [localActiveId, setLocalActiveId] = useState<string>(localSegments[0]?.id ?? "");
+  const activeId = sharedContext?.activeId ?? localActiveId;
+  const setActiveId = sharedContext?.setActiveId ?? setLocalActiveId;
+  const clickTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(
+    () => () => {
+      if (clickTimeoutRef.current) {
+        clearTimeout(clickTimeoutRef.current);
+      }
+    },
+    []
+  );
+
+  const handleTitleClick = useCallback(
+    (href: string) => {
+      router.push(href);
+    },
+    [router]
+  );
+
+  const handleTitleDoubleClick = useCallback((href: string) => {
+    if (clickTimeoutRef.current) {
+      clearTimeout(clickTimeoutRef.current);
+      clickTimeoutRef.current = null;
+    }
+    if (typeof window !== "undefined") {
+      window.open(href, "_blank", "noopener,noreferrer");
+    }
+  }, []);
+
+  useEffect(() => {
+    if (sharedContext) return;
+    if (segments.length === 0) return;
+    setLocalActiveId((current) => {
+      if (segments.some((segment) => segment.id === current)) return current;
+      return segments[0].id;
+    });
+  }, [segments, sharedContext]);
+
+  const activeSegment = useMemo(
+    () => segments.find((segment) => segment.id === activeId) ?? segments[0],
+    [segments, activeId]
+  );
+
+  const activeMarkets = activeSegment?.markets ?? [];
+
+  if (!activeSegment) return null;
+
+  const shouldRenderHeader = variant === "full" || variant === "header";
+  const shouldRenderContent = variant === "full" || variant === "content";
+  const isHeaderOnly = shouldRenderHeader && !shouldRenderContent;
+  const sectionClassName = isHeaderOnly ? `${styles.hero} ${styles.heroHeaderOnly}` : styles.hero;
+
+  return (
+    <section className={sectionClassName} aria-labelledby="markets-hero-heading">
+      {shouldRenderHeader && (
+        <div className={styles.headerGroup} data-testid="hero-header-group">
+          <div className={styles.topRow} data-testid="hero-header-top-row">
+            <div className={styles.brand}>{brand}</div>
+            <div className={styles.actions}>{actions}</div>
+          </div>
+          <div className={styles.heroNav} role="tablist" aria-label="Segmentos de mercados destacados">
+            {segments.map((segment) => {
+              const tabId = `hero-tab-${segment.id}`;
+              const panelId = `hero-panel-${segment.id}`;
+              const isActive = activeSegment.id === segment.id;
+              return (
+                <button
+                  key={segment.id}
+                  id={tabId}
+                  type="button"
+                  role="tab"
+                  aria-selected={isActive}
+                  aria-controls={panelId}
+                  className={isActive ? `${styles.heroTab} ${styles.heroTabActive}` : styles.heroTab}
+                  style={{ marginRight: "2rem" }}
+                  onClick={() => setActiveId(segment.id)}
+                >
+                  {segment.label}
+                </button>
+              );
+            })}
+          </div>
+          {showDivider && <div className={styles.heroDivider} aria-hidden="true" />}
+        </div>
+      )}
+      {shouldRenderContent && (
+        <div className={styles.heroContent} data-testid="hero-content">
+          <div className={styles.heroSearchBarRow}>
+            <SearchBar placeholder="Buscar mercados..." />
+          </div>
+
+          {activeMarkets.length > 0 ? (
+            <div className={styles.heroPreview}>
+              {activeMarkets.map((market) => {
+                const probability = getLatestProbability(market);
+                const probabilityLabel = probability !== null ? formatProbability(probability) : undefined;
+                const volumeLabel = formatVolume(market);
+                const imageSrc = resolveImageSrc(market.image);
+                const marketHref = `/markets/${market.slug}`;
+
+                return (
+                  <article
+                    key={market.slug}
+                    className={styles.previewCard}
+                    data-testid="hero-preview-card"
+                  >
+                    <div className={styles.previewHeader}>
+                      <div className={styles.previewIdentity}>
+                        <img
+                          src={imageSrc}
+                          alt=""
+                          role="presentation"
+                          className={styles.previewMedia}
+                          onError={(event) => {
+                            if (event.currentTarget.src.endsWith("/markets/placeholder.svg")) return;
+                            event.currentTarget.onerror = null;
+                            event.currentTarget.src = "/markets/placeholder.svg";
+                          }}
+                        />
+                        <div className={styles.previewBody}>
+                          <h3>
+                            <a
+                              href={marketHref}
+                              onClick={(event) => {
+                                event.preventDefault();
+                                handleTitleClick(marketHref);
+                              }}
+                              onDoubleClick={(event) => {
+                                event.preventDefault();
+                                handleTitleDoubleClick(marketHref);
+                              }}
+                              onKeyDown={(event) => {
+                                if (event.key === "Enter" || event.key === " ") {
+                                  event.preventDefault();
+                                  router.push(marketHref);
+                                }
+                              }}
+                            >
+                              {market.title}
+                            </a>
+                          </h3>
+                        </div>
+                      </div>
+                      {probabilityLabel && <div className={styles.previewOdds}>{probabilityLabel}</div>}
+                    </div>
+
+                    <div className={styles.previewFooter}>
+                      <div className={styles.previewActions}>
+                        <button type="button" className={`${styles.previewButton} ${styles.previewButtonYes}`}>
+                          Sí
+                        </button>
+                        <button type="button" className={`${styles.previewButton} ${styles.previewButtonNo}`}>
+                          No
+                        </button>
+                      </div>
+                      <span className={styles.previewVolume}>{volumeLabel}</span>
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
+          ) : (
+            <div className={styles.heroEmpty}>No hay mercados disponibles en esta categoría todavía.</div>
+          )}
+        </div>
+      )}
+    </section>
+  );
+}
+
+function getLatestProbability(market: UiMarket): number | null {
+  const history = Array.isArray(market.history) ? market.history : [];
+  if (history.length === 0) return null;
+  const last = history[history.length - 1];
+  return typeof last.yes === "number" ? last.yes : null;
+}
+
+function formatProbability(value: number): string {
+  return `${Math.round(value * 100)}%`;
+}
+
+const currencyFormatter = new Intl.NumberFormat("en-US", {
+  style: "currency",
+  currency: "USD",
+  maximumFractionDigits: 0
+});
+
+function formatVolume(market: UiMarket): string {
+  const history: HistoryPoint[] = Array.isArray(market.history) ? market.history : [];
+  const base = market.minBaseQty ?? 0;
+  const inferred = history.reduce((sum, point) => sum + (point.yes + point.no) * 100, 0);
+  const estimate = Math.max(inferred, base * 25, 500);
+  return `${currencyFormatter.format(Math.round(estimate))} Vol.`;
+}
+
+function resolveImageSrc(source?: string): string {
+  if (typeof source !== "string") return "/markets/placeholder.svg";
+  const trimmed = source.trim();
+  if (trimmed.length === 0) return "/markets/placeholder.svg";
+  if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) return trimmed;
+  if (trimmed.startsWith("public/")) return `/${trimmed.slice("public/".length)}`;
+  if (trimmed.startsWith("/")) return trimmed;
+  return `/${trimmed}`;
+}
