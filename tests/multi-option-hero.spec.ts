@@ -46,10 +46,10 @@ test.describe("Home hero multi-option previews", () => {
 
     if (!yesBox || !noBox) return;
 
-    expect(yesBox.height).toBeLessThanOrEqual(24);
-    expect(noBox.height).toBeLessThanOrEqual(24);
-    expect(yesBox.height).toBeGreaterThanOrEqual(18);
-    expect(noBox.height).toBeGreaterThanOrEqual(18);
+    expect(yesBox.height).toBeLessThanOrEqual(25);
+    expect(noBox.height).toBeLessThanOrEqual(25);
+    expect(yesBox.height).toBeGreaterThanOrEqual(23);
+    expect(noBox.height).toBeGreaterThanOrEqual(23);
   });
 
   test("keeps option row layout in a single line across breakpoints", async ({ page }) => {
