@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { seeded, type UiMarket } from "@/lib/markets";
+import { isMultiOptionMarket, seeded, type UiMarket } from "@/lib/markets";
 import styles from "@/styles/components/MarketCard.module.css";
 
 type Props = {
@@ -33,14 +33,17 @@ export default function MarketCard({ market }: Props) {
       ? resolutionFormatter.format(resolvesAt)
       : undefined;
   const live = seeded(market);
+  const firstOption = isMultiOptionMarket(market) ? market.options[0] : undefined;
+  const yesMint = market.yesMint ?? firstOption?.yesMint;
+  const noMint = market.noMint ?? firstOption?.noMint;
   const statusLabel = live ? "Trading live" : "Opening soon";
   const feeValue = (market.feesBps ?? 0) / 100;
   const feeLabel = `${feeValue % 1 === 0 ? feeValue.toFixed(0) : feeValue.toFixed(2)}%`;
   const metrics = [
     { label: "Min order", value: numberFormatter.format(market.minBaseQty) },
     { label: "Fee", value: feeLabel },
-    { label: "Sí mint", value: abbreviate(market.yesMint) },
-    { label: "No mint", value: abbreviate(market.noMint) }
+    { label: "Sí mint", value: abbreviate(yesMint) },
+    { label: "No mint", value: abbreviate(noMint) }
   ];
 
   return (
@@ -76,7 +79,8 @@ export default function MarketCard({ market }: Props) {
   );
 }
 
-function abbreviate(value: string) {
+function abbreviate(value?: string) {
+  if (!value || value.length === 0) return "—";
   if (value.length <= 10) return value;
   return `${value.slice(0, 4)}…${value.slice(-4)}`;
 }

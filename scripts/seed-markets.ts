@@ -8,7 +8,9 @@ import { fileURLToPath } from "node:url";
 type MarketsFile = {
   markets: Array<{
     slug: string;
-    yesMint: string;
+    yesMint?: string;
+    multiOption?: boolean;
+    options?: Array<{ yesMint: string }>;
     quoteMint: string;
     tickSize: number;
     minBaseQty: number;
@@ -56,7 +58,13 @@ async function main() {
   const data = await readMarkets();
 
   for (const m of data.markets) {
-    const baseMint = new PublicKey(m.yesMint);
+    const baseMintAddress =
+      (m.multiOption && m.options && m.options[0] && m.options[0].yesMint) || m.yesMint;
+    if (!baseMintAddress) {
+      console.warn(`Skipping ${m.slug}: no base mint configured`);
+      continue;
+    }
+    const baseMint = new PublicKey(baseMintAddress);
     const quoteMint = new PublicKey(m.quoteMint);
 
     const sig1 = await client.initMarket({

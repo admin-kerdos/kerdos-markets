@@ -2,7 +2,7 @@ import dynamic from "next/dynamic";
 import { notFound } from "next/navigation";
 
 import type { HistoryPoint, UiMarket } from "@/lib/markets";
-import { ensureHistory, getMarketBySlug } from "@/lib/markets";
+import { ensureHistory, getMarketBySlug, isMultiOptionMarket, sortMarketOptions } from "@/lib/markets";
 import MarketCoverImage from "@/components/market/MarketCoverImage";
 import MarketHeroIdentity from "@/components/market/MarketHeroIdentity";
 
@@ -41,6 +41,8 @@ export default function MarketDetailPage({ params }: PageProps) {
         : null;
   const yesPriceLabel = formatPrice(yesPriceValue);
   const noPriceLabel = formatPrice(noPriceValue);
+  const multiOption = isMultiOptionMarket(detailed);
+  const marketOptions = multiOption ? sortMarketOptions(detailed.options) : [];
 
   const resolvesAtLabel = detailed.resolvesAt
     ? formatDateLabel(detailed.resolvesAt)
@@ -95,10 +97,16 @@ export default function MarketDetailPage({ params }: PageProps) {
             <MarketActionButtons
               marketTitle={detailed.title}
               marketImage={coverSrc}
-              prices={{
-                yes: { label: yesPriceLabel, value: yesPriceValue },
-                no: { label: noPriceLabel, value: noPriceValue }
-              }}
+              multiOption={multiOption}
+              options={marketOptions}
+              prices={
+                multiOption
+                  ? undefined
+                  : {
+                      yes: { label: yesPriceLabel, value: yesPriceValue },
+                      no: { label: noPriceLabel, value: noPriceValue }
+                    }
+              }
             />
 
             <section className={styles.rulesPanel} data-testid="market-rules-panel">

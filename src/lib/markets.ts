@@ -3,6 +3,13 @@ import devnet from "../../app/data/markets.devnet.json";
 
 export type HistoryPoint = { t: number; yes: number; no: number };
 
+export type UiMarketOption = {
+  name: string;
+  yesMint: string;
+  noMint: string;
+  probability?: number | null;
+};
+
 export type UiMarket = {
   slug: string;
   title: string;
@@ -11,12 +18,14 @@ export type UiMarket = {
   live?: "yes" | "no" | boolean;
   resolvesAt?: string;
   image?: string;
-  yesMint: string;
-  noMint: string;
+  yesMint?: string;
+  noMint?: string;
   quoteMint: string;
   tickSize: number;
   minBaseQty: number;
   feesBps: number;
+  multiOption?: boolean;
+  options?: UiMarketOption[];
   history?: HistoryPoint[];
 };
 
@@ -36,6 +45,9 @@ export function getMarketBySlug(slug: string): UiMarket | undefined {
 }
 
 export function seeded(market: UiMarket): boolean {
+  if (market.multiOption && Array.isArray(market.options) && market.options.length > 0) {
+    return market.options.every((option) => option.yesMint && option.noMint) && Boolean(market.quoteMint);
+  }
   if (typeof market.live === "string") {
     return market.live.toLowerCase() === "yes";
   }
@@ -81,4 +93,46 @@ function pseudoRandom(seed: string, iteration: number): number {
 
 function clamp(value: number, min: number, max: number): number {
   return Math.min(Math.max(value, min), max);
+}
+
+export function isMultiOptionMarket(market: UiMarket): market is UiMarket & { options: UiMarketOption[] } {
+  return Boolean(market.multiOption) && Array.isArray(market.options) && market.options.length > 0;
+}
+
+export function sortMarketOptions(options: UiMarketOption[] | undefined): UiMarketOption[] {
+  if (!Array.isArray(options)) {
+    return [];
+  }
+  const hasProbabilities = options.some(
+    (option) => typeof option.probability === "number" && !Number.isNaN(option.probability)
+  );
+  const sorted = [...options];
+  sorted.sort((a, b) => {
+    const aProb =
+      typeof a.probability === "number" && !Number.isNaN(a.probability) ? a.probability : null;
+    const bProb =
+      typeof b.probability === "number" && !Number.isNaN(b.probability) ? b.probability : null;
+    if (hasProbabilities) {
+      if (aProb === bProb) {
+        return a.name.localeCompare(b.name, "es", { sensitivity: "base" });
+      }
+      return (bProb ?? -Infinity) - (aProb ?? -Infinity);
+    }
+    return a.name.localeCompare(b.name, "es", { sensitivity: "base" });
+  });
+  return sorted;
+}
+
+export function getTopMarketOptions(market: UiMarket, limit: number): UiMarketOption[] {
+  if (limit <= 0) {
+    return [];
+  }
+  return sortMarketOptions(market.options).slice(0, limit);
+}
+
+export function clampProbability(value: number | null | undefined): number | null {
+  if (typeof value !== "number" || Number.isNaN(value) || !Number.isFinite(value)) {
+    return null;
+  }
+  return clamp(value, 0, 1);
 }

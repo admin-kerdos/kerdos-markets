@@ -1,8 +1,8 @@
 "use client";
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import type { HistoryPoint, UiMarket } from "@/lib/markets";
-import { ensureHistory } from "@/lib/markets";
+import type { HistoryPoint, UiMarket, UiMarketOption } from "@/lib/markets";
+import { clampProbability, ensureHistory, getTopMarketOptions, isMultiOptionMarket } from "@/lib/markets";
 import { useTradeModal, type TradeSide } from "@/hooks/useTradeModal";
 import styles from "@/styles/components/HeroCarousel.module.css";
 import SearchBar from "@/components/ui/SearchBar";
@@ -68,11 +68,11 @@ export default function HeroCarousel({ markets, brand, actions, variant = "conte
   );
 
   const handleTradeClick = useCallback(
-    (market: UiMarket, nextSide: TradeSide) => {
+    (market: UiMarket, nextSide: TradeSide, option?: UiMarketOption) => {
       const detailed = ensureHistory(market);
-      const prices = computeTradePrices(detailed);
+      const prices = option ? computeOptionTradePrices(option) : computeTradePrices(detailed);
       setModalMarket({
-        title: detailed.title,
+        title: option ? `${option.name} - ${detailed.title}` : detailed.title,
         image: resolveImageSrc(detailed.image),
         prices
       });
@@ -168,6 +168,8 @@ export default function HeroCarousel({ markets, brand, actions, variant = "conte
                 const volumeLabel = formatVolume(market);
                 const imageSrc = resolveImageSrc(market.image);
                 const marketHref = `/markets/${market.slug}`;
+                const isMultiOption = isMultiOptionMarket(market);
+                const topOptions = isMultiOption ? getTopMarketOptions(market, 2) : [];
 
                 return (
                   <article key={market.slug} className={styles.previewCard} data-testid="hero-preview-card">
@@ -212,26 +214,74 @@ export default function HeroCarousel({ markets, brand, actions, variant = "conte
                     </div>
 
                     <div className={styles.previewFooter}>
-                      <div className={styles.previewActions}>
-                        <button
-                          type="button"
-                          className={`${styles.previewButton} ${styles.previewButtonYes}`}
-                          data-hero-trade="yes"
-                          onClick={() => handleTradeClick(market, "yes")}
-                          aria-label={`Comprar Sí en ${market.title}`}
-                        >
-                          Sí
-                        </button>
-                        <button
-                          type="button"
-                          className={`${styles.previewButton} ${styles.previewButtonNo}`}
-                          data-hero-trade="no"
-                          onClick={() => handleTradeClick(market, "no")}
-                          aria-label={`Comprar No en ${market.title}`}
-                        >
-                          No
-                        </button>
-                      </div>
+                      {isMultiOption ? (
+                        <div className={styles.previewOptionList} data-testid="hero-preview-option-list">
+                          {topOptions.map((option) => (
+                            <div
+                              key={`${market.slug}-${option.name}`}
+                              className={styles.previewOptionRow}
+                              data-testid="hero-preview-option-row"
+                            >
+                              <span
+                                className={styles.previewOptionName}
+                                title={option.name}
+                                data-hero-option-name
+                              >
+                                {option.name}
+                              </span>
+                              <div className={styles.previewOptionControls}>
+                                <span
+                                  className={styles.previewOptionProbability}
+                                  data-hero-option-probability
+                                >
+                                  {formatOptionProbability(option.probability)}
+                                </span>
+                                <button
+                                  type="button"
+                                  className={`${styles.previewOptionButton} ${styles.previewOptionButtonYes}`}
+                                  data-hero-option-trade="yes"
+                                  data-yes-mint={option.yesMint}
+                                  onClick={() => handleTradeClick(market, "yes", option)}
+                                  aria-label={`Comprar Sí en ${option.name}`}
+                                >
+                                  Sí
+                                </button>
+                                <button
+                                  type="button"
+                                  className={`${styles.previewOptionButton} ${styles.previewOptionButtonNo}`}
+                                  data-hero-option-trade="no"
+                                  data-no-mint={option.noMint}
+                                  onClick={() => handleTradeClick(market, "no", option)}
+                                  aria-label={`Comprar No en ${option.name}`}
+                                >
+                                  No
+                                </button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className={styles.previewActions}>
+                          <button
+                            type="button"
+                            className={`${styles.previewButton} ${styles.previewButtonYes}`}
+                            data-hero-trade="yes"
+                            onClick={() => handleTradeClick(market, "yes")}
+                            aria-label={`Comprar Sí en ${market.title}`}
+                          >
+                            Sí
+                          </button>
+                          <button
+                            type="button"
+                            className={`${styles.previewButton} ${styles.previewButtonNo}`}
+                            data-hero-trade="no"
+                            onClick={() => handleTradeClick(market, "no")}
+                            aria-label={`Comprar No en ${market.title}`}
+                          >
+                            No
+                          </button>
+                        </div>
+                      )}
                       <span className={styles.previewVolume}>{volumeLabel}</span>
                     </div>
                   </article>
@@ -323,4 +373,21 @@ function formatPrice(value: number | null): string {
   }
   const normalized = Math.max(0, Math.min(1, value));
   return `$${normalized.toFixed(2)}`;
+}
+
+function computeOptionTradePrices(option: UiMarketOption): { yes: PriceInfo; no: PriceInfo } {
+  const yesValue = clampProbability(option.probability);
+  const noValue = typeof yesValue === "number" ? clampProbability(1 - yesValue) : null;
+  return {
+    yes: { label: formatPrice(yesValue), value: yesValue },
+    no: { label: formatPrice(noValue), value: noValue }
+  };
+}
+
+function formatOptionProbability(value: number | null | undefined): string {
+  const normalized = clampProbability(value);
+  if (typeof normalized !== "number") {
+    return "—";
+  }
+  return formatProbability(normalized);
 }

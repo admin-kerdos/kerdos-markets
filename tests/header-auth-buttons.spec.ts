@@ -102,7 +102,7 @@ test.describe("header auth buttons", () => {
     await expect(page.locator('img[src="/markets/logo.svg?v=4"]')).toBeVisible();
 
     await page.goto("/markets/cr-elecciones-ganador-2026");
-    const yesButton = page.locator("[data-market-action='yes']");
+    const yesButton = page.locator("[data-market-option-action='yes']").first();
     await expect(yesButton).toHaveCSS("background-color", "rgb(22, 163, 74)");
   });
 

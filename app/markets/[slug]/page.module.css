@@ -218,6 +218,105 @@
   margin-block-start: clamp(var(--space-3), 3vw, var(--space-4));
 }
 
+.multiOptionList {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(0.6rem, 2vw, 0.85rem);
+  width: 100%;
+  padding-inline: clamp(var(--space-4), 3vw, var(--space-5));
+  margin-block-start: clamp(var(--space-3), 3vw, var(--space-4));
+}
+
+.multiOptionRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: clamp(0.5rem, 1.8vw, 0.9rem);
+  min-width: 0;
+  flex-wrap: nowrap;
+}
+
+.multiOptionName {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: clamp(18px, 2vw, 24px);
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.multiOptionControls {
+  display: inline-flex;
+  align-items: center;
+  gap: clamp(0.5rem, 1.5vw, 0.85rem);
+  flex-shrink: 0;
+  flex-wrap: nowrap;
+}
+
+.multiOptionProbability {
+  font-size: clamp(16px, 1.7vw, 20px);
+  font-weight: 600;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
+.multiOptionButton {
+  border: none;
+  border-radius: 16px;
+  padding: clamp(10px, 1.6vw, 14px) clamp(18px, 2.4vw, 28px);
+  min-width: clamp(88px, 20vw, 120px);
+  height: clamp(40px, 5vw, 48px);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: clamp(16px, 1.6vw, 20px);
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #ffffff;
+  cursor: pointer;
+  transition: background-color 160ms ease, transform 120ms ease, box-shadow 160ms ease;
+  white-space: nowrap;
+}
+
+.multiOptionButtonYes {
+  background-color: #16a34a;
+}
+
+.multiOptionButtonYes:hover,
+.multiOptionButtonYes:focus-visible {
+  background-color: #15803d;
+}
+
+.multiOptionButtonYes:active {
+  background-color: #166534;
+}
+
+.multiOptionButtonNo {
+  background-color: #dc2626;
+}
+
+.multiOptionButtonNo:hover,
+.multiOptionButtonNo:focus-visible {
+  background-color: #b91c1c;
+}
+
+.multiOptionButtonNo:active {
+  background-color: #991b1b;
+}
+
+.multiOptionButton:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 16px rgba(15, 23, 42, 0.12);
+}
+
+.multiOptionButton:focus-visible {
+  outline: 3px solid rgba(255, 255, 255, 0.3);
+  outline-offset: 2px;
+}
+
 .actionButton {
   flex: 1 1 50%;
   display: flex;

@@ -41,7 +41,12 @@ test.describe("Home hero categories", () => {
     await page.goto("/");
 
     const firstCard = page.getByTestId("hero-preview-card").first();
-    await firstCard.locator("[data-hero-trade='yes']").click();
+    const multiOptionYes = firstCard.locator("[data-hero-option-trade='yes']");
+    if (await multiOptionYes.count()) {
+      await multiOptionYes.first().click();
+    } else {
+      await firstCard.locator("[data-hero-trade='yes']").click();
+    }
 
     const modal = page.locator("[data-trade-modal]");
     await expect(modal).toBeVisible();

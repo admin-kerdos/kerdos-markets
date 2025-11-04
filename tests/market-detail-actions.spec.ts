@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-const DETAIL_PATH = "/markets/cr-elecciones-ganador-2026";
+const DETAIL_PATH = "/markets/sol-ath-2025";
 
 test.describe("Market detail action buttons", () => {
   test.beforeEach(async ({ page }) => {
@@ -220,7 +220,7 @@ test.describe("Market detail action buttons", () => {
     const modal = page.locator("[data-trade-modal]");
     await expect(modal).toBeVisible();
     await expect(modal.locator("[data-trade-modal-selected-action]")).toHaveText(/Comprar Sí/i);
-    await expect(modal.locator("h2")).toContainText("¿Quién ganará");
+    await expect(modal.locator("h2")).toContainText("¿Solana va superar");
     await expect(modal.locator("[data-trade-modal-side='yes']")).toContainText("Sí");
     await expect(modal.locator("[data-trade-modal-side='no']")).toContainText("No");
 

@@ -256,6 +256,88 @@
     gap: var(--space-2);
   }
 
+  .previewOptionList {
+    display: flex;
+    flex-direction: column;
+    gap: clamp(0.3rem, 0.9vw, 0.5rem);
+    width: 100%;
+  }
+
+  .previewOptionRow {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: clamp(0.3rem, 0.9vw, 0.6rem);
+    min-width: 0;
+    flex-wrap: nowrap;
+  }
+
+  .previewOptionName {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: var(--font-size-xs);
+    font-weight: 600;
+    color: var(--color-text);
+  }
+
+  .previewOptionControls {
+    display: inline-flex;
+    align-items: center;
+    gap: clamp(0.25rem, 0.8vw, 0.5rem);
+    flex-shrink: 0;
+    flex-wrap: nowrap;
+  }
+
+  .previewOptionProbability {
+    font-size: var(--font-size-xs);
+    font-weight: 600;
+    color: var(--color-text-subtle);
+    white-space: nowrap;
+  }
+
+  .previewOptionButton {
+    border: none;
+    border-radius: var(--radius-sm);
+    font-size: var(--font-size-xs);
+    font-weight: 700;
+    padding: clamp(0.35rem, 0.8vw, 0.45rem) clamp(0.7rem, 1.4vw, 0.95rem);
+    min-width: clamp(52px, 16vw, 72px);
+    height: clamp(28px, 4.5vw, 36px);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition:
+      background var(--transition-base),
+      box-shadow var(--transition-base),
+      transform var(--transition-short);
+    white-space: nowrap;
+  }
+
+  .previewOptionButtonYes {
+    background: var(--color-success);
+    color: var(--color-success-contrast);
+  }
+
+  .previewOptionButtonNo {
+    background: var(--color-danger);
+    color: var(--color-danger-contrast);
+  }
+
+  .previewOptionButton:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-soft);
+  }
+
+  .previewOptionButton:focus-visible {
+    outline: none;
+    box-shadow:
+      0 0 0 2px var(--color-bg),
+      0 0 0 4px var(--color-focus);
+  }
+
   .previewActions {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
