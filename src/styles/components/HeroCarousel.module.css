@@ -132,6 +132,44 @@
     margin-top: clamp(6px, 1vw, 12px) !important;
   }
 
+  .heroSearchMeta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin-top: clamp(var(--space-1), 0.9vw, var(--space-2));
+    color: var(--color-text-subtle);
+    font-size: var(--font-size-xs);
+  }
+
+  .heroSearchMeta span {
+    line-height: 1.4;
+  }
+
+  .heroSearchClear {
+    border: none;
+    background: transparent;
+    color: var(--color-brand);
+    font-weight: 600;
+    font-size: var(--font-size-xs);
+    padding: 0;
+    cursor: pointer;
+    line-height: 1.4;
+  }
+
+  .heroSearchClear:hover {
+    text-decoration: underline;
+  }
+
+  .heroSearchClear:focus-visible {
+    outline: none;
+    box-shadow:
+      0 0 0 2px var(--color-bg),
+      0 0 0 4px var(--color-focus);
+    border-radius: var(--radius-sm);
+  }
+
   .actions {
     display: inline-flex;
     align-items: center;
@@ -414,6 +452,11 @@
 
     .heroNav {
       flex-wrap: nowrap;
+    }
+
+    .heroSearchMeta {
+      justify-content: flex-start;
+      gap: var(--space-1);
     }
   }
 

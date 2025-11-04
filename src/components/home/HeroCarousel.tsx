@@ -39,6 +39,7 @@ export default function HeroCarousel({ markets, brand, actions, variant = "conte
       no: PriceInfo;
     };
   } | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(
     () => () => {
@@ -106,6 +107,25 @@ export default function HeroCarousel({ markets, brand, actions, variant = "conte
   );
 
   const activeMarkets = activeSegment?.markets ?? [];
+  const trimmedSearch = searchQuery.trim();
+  const searchTokens = useMemo(
+    () => {
+      if (trimmedSearch.length === 0) return [];
+      const normalized = normalizeSearchText(trimmedSearch);
+      return normalized.split(/\s+/).filter(Boolean);
+    },
+    [trimmedSearch]
+  );
+  const filteredMarkets = useMemo(
+    () => {
+      if (searchTokens.length === 0) return [];
+      return markets.filter((market) => marketMatchesSearchTokens(market, searchTokens));
+    },
+    [markets, searchTokens]
+  );
+  const isSearching = searchTokens.length > 0;
+  const visibleMarkets = isSearching ? filteredMarkets : activeMarkets;
+  const displayQuery = trimmedSearch;
 
   if (!activeSegment) return null;
 
@@ -156,12 +176,39 @@ export default function HeroCarousel({ markets, brand, actions, variant = "conte
       {shouldRenderContent && (
         <div className={styles.heroContent} data-testid="hero-content">
           <div className={styles.heroSearchBarRow}>
-            <SearchBar placeholder="Buscar mercados..." />
+            <SearchBar
+              placeholder="Buscar mercados..."
+              value={searchQuery}
+              onChange={(event) => setSearchQuery(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === "Escape") {
+                  event.preventDefault();
+                  setSearchQuery("");
+                  event.currentTarget.blur();
+                }
+              }}
+            />
           </div>
+          {isSearching && (
+            <div className={styles.heroSearchMeta} data-testid="hero-search-meta">
+              <span>
+                {filteredMarkets.length > 0
+                  ? `${filteredMarkets.length === 1 ? "1 resultado" : `${filteredMarkets.length} resultados`} para "${displayQuery}"`
+                  : `Sin resultados para "${displayQuery}"`}
+              </span>
+              <button
+                type="button"
+                className={styles.heroSearchClear}
+                onClick={() => setSearchQuery("")}
+              >
+                Limpiar
+              </button>
+            </div>
+          )}
 
-          {activeMarkets.length > 0 ? (
+          {visibleMarkets.length > 0 ? (
             <div className={styles.heroPreview}>
-              {activeMarkets.map((market) => {
+              {visibleMarkets.map((market) => {
                 const probability = getLatestProbability(market);
                 const probabilityLabel = probability !== null ? formatProbability(probability) : undefined;
                 const volumeLabel = formatVolume(market);
@@ -288,7 +335,13 @@ export default function HeroCarousel({ markets, brand, actions, variant = "conte
               })}
             </div>
           ) : (
-            <div className={styles.heroEmpty}>No hay mercados disponibles en esta categoría todavía.</div>
+            isSearching ? (
+              <div className={styles.heroEmpty} data-testid="hero-search-empty">
+                No encontramos mercados que coincidan con "{displayQuery}". Intenta con otro término o revisa los segmentos destacados.
+              </div>
+            ) : (
+              <div className={styles.heroEmpty}>No hay mercados disponibles en esta categoría todavía.</div>
+            )
           )}
         </div>
       )}
@@ -389,4 +442,29 @@ function formatOptionProbability(value: number | null | undefined): string {
     return "—";
   }
   return formatProbability(normalized);
+}
+
+function marketMatchesSearchTokens(market: UiMarket, tokens: string[]): boolean {
+  if (tokens.length === 0) return true;
+  const parts: string[] = [
+    market.title,
+    market.summary ?? "",
+    market.slug.replace(/[-_]/g, " ")
+  ];
+  if (Array.isArray(market.options)) {
+    for (const option of market.options) {
+      if (option && typeof option.name === "string") {
+        parts.push(option.name);
+      }
+    }
+  }
+  const haystack = normalizeSearchText(parts.join(" "));
+  return tokens.every((token) => haystack.includes(token));
+}
+
+function normalizeSearchText(value: string): string {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
 }
