@@ -261,7 +261,7 @@ export default function HeroCarousel({ markets, brand, actions, variant = "conte
                           ))}
                         </div>
                       ) : (
-                        <div className={styles.previewActions}>
+                        <div className={styles.previewActions} data-testid="hero-preview-actions">
                           <button
                             type="button"
                             className={`${styles.previewButton} ${styles.previewButtonYes}`}

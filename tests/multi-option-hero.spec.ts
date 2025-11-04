@@ -25,6 +25,33 @@ test.describe("Home hero multi-option previews", () => {
     expect(probabilities).toEqual(["56%", "32%"]);
   });
 
+  test("renders compact option buttons", async ({ page }) => {
+    const card = page
+      .locator("[data-testid='hero-preview-card']")
+      .filter({
+        has: page.getByRole("heading", { level: 3, name: MARKET_HEADING })
+      })
+      .first();
+
+    const yesButton = card.locator("[data-hero-option-trade='yes']").first();
+    const noButton = card.locator("[data-hero-option-trade='no']").first();
+
+    await expect(yesButton).toBeVisible();
+    await expect(noButton).toBeVisible();
+
+    const [yesBox, noBox] = await Promise.all([yesButton.boundingBox(), noButton.boundingBox()]);
+
+    expect(yesBox).not.toBeNull();
+    expect(noBox).not.toBeNull();
+
+    if (!yesBox || !noBox) return;
+
+    expect(yesBox.height).toBeLessThanOrEqual(24);
+    expect(noBox.height).toBeLessThanOrEqual(24);
+    expect(yesBox.height).toBeGreaterThanOrEqual(18);
+    expect(noBox.height).toBeGreaterThanOrEqual(18);
+  });
+
   test("keeps option row layout in a single line across breakpoints", async ({ page }) => {
     const card = page
       .locator("[data-testid='hero-preview-card']")
