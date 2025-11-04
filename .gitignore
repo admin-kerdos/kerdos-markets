@@ -22,6 +22,7 @@ programs/**/tests/.fingerprint/
 
 # Dependencies
 node_modules/
+pnpm-lock.yaml
 
 # Rust artifacts
 **/Cargo.lock
