@@ -137,7 +137,6 @@ export default function HeroCarousel({ markets, brand, actions, variant = "conte
                     aria-selected={isActive}
                     aria-controls={panelId}
                     className={isActive ? `${styles.heroTab} ${styles.heroTabActive}` : styles.heroTab}
-                    style={{ marginRight: "2rem" }}
                     onClick={() => {
                       setActiveId(segment.id);
                       if (pathname !== "/") {

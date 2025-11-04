@@ -84,16 +84,17 @@
     background: var(--header-accent);
     border: 1px solid transparent;
     color: var(--header-accent-contrast);
+    transform: translateX(-0.1rem);
   }
 
   .authButtonFilled:hover {
     background: var(--header-accent-strong);
     box-shadow: var(--shadow-soft);
-    transform: translateY(-1px);
+    transform: translateX(-0.1rem) translateY(-1px);
   }
 
   .authButtonFilled:active {
-    transform: translateY(0);
+    transform: translateX(-0.1rem);
     background: var(--header-accent-strong);
   }
 
@@ -118,6 +119,10 @@
       justify-content: center;
       font-size: 0.85rem;
       padding: 6px 14px;
+    }
+
+    .authButtonFilled {
+      transform: none;
     }
   }
 }
