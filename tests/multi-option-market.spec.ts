@@ -64,7 +64,8 @@ test.describe("Multi-option market detail page", () => {
     const viewports = [
       { width: 1440, height: 900 },
       { width: 1024, height: 900 },
-      { width: 414, height: 900 }
+      { width: 414, height: 900 },
+      { width: 360, height: 640 }
     ];
 
     for (const viewport of viewports) {
@@ -89,16 +90,21 @@ test.describe("Multi-option market detail page", () => {
           throw new Error("Incomplete option row structure");
         }
 
-        const [nameBox, probBox, yesBox, noBox] = await Promise.all([
+        const [nameBox, probBox, yesBox, noBox, display, gridTemplate] = await Promise.all([
           nameHandle.boundingBox(),
           probHandle.boundingBox(),
           yesHandle.boundingBox(),
-          noHandle.boundingBox()
+          noHandle.boundingBox(),
+          row.evaluate((node) => getComputedStyle(node).display),
+          row.evaluate((node) => getComputedStyle(node).gridTemplateColumns)
         ]);
 
         if (!nameBox || !probBox || !yesBox || !noBox) {
           throw new Error("Unable to measure multi-option layout");
         }
+
+        expect(display).toBe("grid");
+        expect(gridTemplate).toContain("auto auto auto");
 
         const align = (boxA: { y: number; height: number }, boxB: { y: number; height: number }) => {
           const centerA = boxA.y + boxA.height / 2;
@@ -111,11 +117,6 @@ test.describe("Multi-option market detail page", () => {
         expect(align(yesBox, noBox)).toBeLessThanOrEqual(2);
 
         expect(noBox.x + noBox.width).toBeLessThanOrEqual(rowBox.x + rowBox.width + 1);
-
-        const flexWrap = await row.evaluate(
-          (node) => getComputedStyle(node).flexWrap
-        );
-        expect(flexWrap).toBe("nowrap");
 
         const whiteSpace = await nameHandle.evaluate(
           (node) => getComputedStyle(node).whiteSpace

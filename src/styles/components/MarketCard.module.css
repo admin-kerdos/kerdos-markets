@@ -226,9 +226,69 @@
     }
   }
 
+  @media (max-width: 767px) {
+    .card {
+      gap: var(--space-3);
+      padding: var(--space-3);
+    }
+
+    .media {
+      min-height: 180px;
+      border-radius: calc(var(--radius-lg) - 8px);
+    }
+
+    .body {
+      gap: var(--space-2);
+    }
+
+    .topline {
+      gap: var(--space-1);
+    }
+
+    .status {
+      padding: 0.2rem 0.45rem;
+      font-size: 11px;
+    }
+
+    .timestamp {
+      font-size: 11px;
+    }
+
+    .title {
+      font-size: 1rem;
+    }
+
+    .summary {
+      font-size: 0.9rem;
+      line-height: 1.45;
+    }
+
+    .metrics {
+      gap: var(--space-2);
+    }
+
+    .metricValue {
+      font-size: 0.85rem;
+    }
+
+    .footer {
+      gap: var(--space-2);
+    }
+
+    .action {
+      min-height: 36px;
+      font-size: 0.85rem;
+      letter-spacing: 0.01em;
+    }
+  }
+
   @media (max-width: 599px) {
     .card {
-      padding: var(--space-3);
+      padding: var(--space-2);
+    }
+
+    .action {
+      min-height: 34px;
     }
 
     .metrics {

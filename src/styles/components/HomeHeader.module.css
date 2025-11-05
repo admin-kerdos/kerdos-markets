@@ -100,25 +100,46 @@
 
   @media (max-width: 767px) {
     .header {
-      padding-bottom: var(--space-4);
+      flex-wrap: nowrap;
+      align-items: center;
+      gap: var(--space-2);
+      padding-bottom: var(--space-3);
+    }
+
+    .brand {
+      font-size: 0.7rem;
+      letter-spacing: -0.015em;
+      gap: 0.35rem;
+      flex: 0 1 auto;
+      min-width: 0;
+    }
+
+    .logo {
+      width: 28px;
+      height: 28px;
+      border-radius: 10px;
     }
 
     .actions {
-      width: 100%;
-      justify-content: space-between;
+      flex: 1 1 auto;
+      display: inline-flex;
       align-items: center;
+      justify-content: flex-end;
+      gap: var(--space-2);
+      width: auto;
     }
 
     .authButtons {
-      flex-direction: column;
-      width: 100%;
+      flex-direction: row;
+      gap: 0.4rem;
     }
 
     .authButton {
-      width: 100%;
-      justify-content: center;
-      font-size: 0.85rem;
-      padding: 6px 14px;
+      min-height: 30px;
+      padding: 4px 10px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      white-space: nowrap;
     }
 
     .authButtonFilled {

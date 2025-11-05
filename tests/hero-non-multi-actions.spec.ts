@@ -38,7 +38,7 @@ test.describe("Hero non multi-choice market actions", () => {
     const yesHeight = await buttons.nth(0).evaluate((element) => element.getBoundingClientRect().height);
     const noHeight = await buttons.nth(1).evaluate((element) => element.getBoundingClientRect().height);
 
-    expect(yesHeight).toBeGreaterThanOrEqual(40);
-    expect(noHeight).toBeGreaterThanOrEqual(40);
+    expect(yesHeight).toBeGreaterThanOrEqual(36);
+    expect(noHeight).toBeGreaterThanOrEqual(36);
   });
 });

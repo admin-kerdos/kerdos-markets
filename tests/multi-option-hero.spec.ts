@@ -39,17 +39,13 @@ test.describe("Home hero multi-option previews", () => {
     await expect(yesButton).toBeVisible();
     await expect(noButton).toBeVisible();
 
-    const [yesBox, noBox] = await Promise.all([yesButton.boundingBox(), noButton.boundingBox()]);
+    const [yesHeight, noHeight] = await Promise.all([
+      yesButton.evaluate((element) => getComputedStyle(element).height),
+      noButton.evaluate((element) => getComputedStyle(element).height)
+    ]);
 
-    expect(yesBox).not.toBeNull();
-    expect(noBox).not.toBeNull();
-
-    if (!yesBox || !noBox) return;
-
-    expect(yesBox.height).toBeLessThanOrEqual(25);
-    expect(noBox.height).toBeLessThanOrEqual(25);
-    expect(yesBox.height).toBeGreaterThanOrEqual(23);
-    expect(noBox.height).toBeGreaterThanOrEqual(23);
+    expect(yesHeight).toBe("26px");
+    expect(noHeight).toBe("26px");
   });
 
   test("keeps option row layout in a single line across breakpoints", async ({ page }) => {
@@ -63,7 +59,8 @@ test.describe("Home hero multi-option previews", () => {
     const viewports = [
       { width: 1440, height: 900 },
       { width: 1024, height: 900 },
-      { width: 390, height: 844 }
+      { width: 390, height: 844 },
+      { width: 360, height: 640 }
     ];
 
     for (const viewport of viewports) {
@@ -86,15 +83,20 @@ test.describe("Home hero multi-option previews", () => {
           throw new Error("Missing hero option sub-elements");
         }
 
-        const [nameBox, probBox, yesBox, noBox] = await Promise.all([
+        const [nameBox, probBox, yesBox, noBox, display, gridTemplate] = await Promise.all([
           nameHandle.boundingBox(),
           probHandle.boundingBox(),
           yesHandle.boundingBox(),
-          noHandle.boundingBox()
+          noHandle.boundingBox(),
+          row.evaluate((node) => getComputedStyle(node).display),
+          row.evaluate((node) => getComputedStyle(node).gridTemplateColumns)
         ]);
         if (!nameBox || !probBox || !yesBox || !noBox) {
           throw new Error("Unable to measure hero option layout");
         }
+
+        expect(display).toBe("grid");
+        expect(gridTemplate).toContain("auto auto auto");
 
         const align = (boxA: { y: number; height: number }, boxB: { y: number; height: number }) => {
           const centerA = boxA.y + boxA.height / 2;
@@ -107,9 +109,6 @@ test.describe("Home hero multi-option previews", () => {
         expect(align(yesBox, noBox)).toBeLessThanOrEqual(2);
 
         expect(noBox.x + noBox.width).toBeLessThanOrEqual(rowBox.x + rowBox.width + 1);
-
-        const flexWrap = await row.evaluate((node) => getComputedStyle(node).flexWrap);
-        expect(flexWrap).toBe("nowrap");
 
         const whiteSpace = await nameHandle.evaluate((node) => getComputedStyle(node).whiteSpace);
         expect(whiteSpace).toBe("nowrap");

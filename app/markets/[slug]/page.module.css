@@ -221,23 +221,21 @@
 .multiOptionList {
   display: flex;
   flex-direction: column;
-  gap: clamp(0.6rem, 2vw, 0.85rem);
+  gap: clamp(0.5rem, 1.6vw, 0.8rem);
   width: 100%;
   padding-inline: clamp(var(--space-4), 3vw, var(--space-5));
   margin-block-start: clamp(var(--space-3), 3vw, var(--space-4));
 }
 
 .multiOptionRow {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto auto;
   align-items: center;
-  justify-content: space-between;
-  gap: clamp(0.5rem, 1.8vw, 0.9rem);
+  column-gap: clamp(0.45rem, 1.4vw, 0.8rem);
   min-width: 0;
-  flex-wrap: nowrap;
 }
 
 .multiOptionName {
-  flex: 1 1 auto;
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -247,31 +245,24 @@
   color: var(--color-text);
 }
 
-.multiOptionControls {
-  display: inline-flex;
-  align-items: center;
-  gap: clamp(0.5rem, 1.5vw, 0.85rem);
-  flex-shrink: 0;
-  flex-wrap: nowrap;
-}
-
 .multiOptionProbability {
   font-size: clamp(16px, 1.7vw, 20px);
   font-weight: 600;
   color: var(--color-text-muted);
   white-space: nowrap;
+  justify-self: end;
 }
 
 .multiOptionButton {
   border: none;
-  border-radius: 16px;
-  padding: clamp(10px, 1.6vw, 14px) clamp(18px, 2.4vw, 28px);
-  min-width: clamp(88px, 20vw, 120px);
-  height: clamp(40px, 5vw, 48px);
+  border-radius: 14px;
+  padding: clamp(8px, 1.4vw, 12px) clamp(16px, 2.2vw, 24px);
+  min-width: clamp(92px, 18vw, 116px);
+  height: clamp(36px, 4.6vw, 44px);
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: clamp(16px, 1.6vw, 20px);
+  font-size: clamp(15px, 1.5vw, 18px);
   font-weight: 700;
   letter-spacing: 0.05em;
   text-transform: uppercase;
@@ -697,6 +688,89 @@
     .metrics {
       width: 100%;
       justify-content: space-between;
+    }
+  }
+
+  @media (max-width: 767px) {
+    .layout {
+      padding-inline: clamp(12px, 6vw, 20px);
+    }
+
+    .detailContent > * + * {
+      margin-block-start: clamp(var(--space-4), 8vw, var(--space-5));
+    }
+
+    .heroCard {
+      gap: var(--space-3);
+      padding-block-start: clamp(var(--space-3), 6vw, var(--space-4));
+    }
+
+    .heroIdentity {
+      gap: var(--space-3);
+    }
+
+    .cover {
+      width: clamp(70px, 24vw, 96px);
+      height: clamp(70px, 24vw, 96px);
+    }
+
+    .identityBody h1 {
+      font-size: clamp(20px, 5.4vw, 28px);
+    }
+
+    .summary {
+      font-size: 0.95rem;
+      line-height: 1.45;
+    }
+
+    .chartCard {
+      padding-block-end: var(--space-3);
+    }
+
+    .chartCard h2 {
+      font-size: 1.1rem;
+    }
+
+    .multiOptionList {
+      padding-inline: clamp(var(--space-3), 6vw, var(--space-4));
+      gap: 0.6rem;
+    }
+
+    .multiOptionRow {
+      column-gap: clamp(0.35rem, 1.2vw, 0.6rem);
+    }
+
+    .multiOptionName {
+      font-size: clamp(16px, 4.4vw, 20px);
+    }
+
+    .multiOptionProbability {
+      font-size: clamp(14px, 3.6vw, 16px);
+    }
+
+    .multiOptionButton {
+      min-width: 84px;
+      height: 32px;
+      padding: 6px 14px;
+      font-size: 0.85rem;
+      letter-spacing: 0.04em;
+      border-radius: 12px;
+    }
+
+    .actionButtons {
+      gap: var(--space-2);
+      padding-inline: clamp(var(--space-3), 6vw, var(--space-4));
+      margin-block-start: clamp(var(--space-3), 6vw, var(--space-4));
+    }
+
+    .actionButton {
+      padding: 10px clamp(18px, 5vw, 24px);
+      min-height: 40px;
+      font-size: clamp(16px, 4.8vw, 20px);
+    }
+
+    .rulesPanel {
+      padding-block: clamp(var(--space-3), 6vw, var(--space-4));
     }
   }
 

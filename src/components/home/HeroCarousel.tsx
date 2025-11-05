@@ -275,34 +275,32 @@ export default function HeroCarousel({ markets, brand, actions, variant = "conte
                               >
                                 {option.name}
                               </span>
-                              <div className={styles.previewOptionControls}>
-                                <span
-                                  className={styles.previewOptionProbability}
-                                  data-hero-option-probability
-                                >
-                                  {formatOptionProbability(option.probability)}
-                                </span>
-                                <button
-                                  type="button"
-                                  className={`${styles.previewOptionButton} ${styles.previewOptionButtonYes}`}
-                                  data-hero-option-trade="yes"
-                                  data-yes-mint={option.yesMint}
-                                  onClick={() => handleTradeClick(market, "yes", option)}
-                                  aria-label={`Comprar Sí en ${option.name}`}
-                                >
-                                  Sí
-                                </button>
-                                <button
-                                  type="button"
-                                  className={`${styles.previewOptionButton} ${styles.previewOptionButtonNo}`}
-                                  data-hero-option-trade="no"
-                                  data-no-mint={option.noMint}
-                                  onClick={() => handleTradeClick(market, "no", option)}
-                                  aria-label={`Comprar No en ${option.name}`}
-                                >
-                                  No
-                                </button>
-                              </div>
+                              <span
+                                className={styles.previewOptionProbability}
+                                data-hero-option-probability
+                              >
+                                {formatOptionProbability(option.probability)}
+                              </span>
+                              <button
+                                type="button"
+                                className={`${styles.previewOptionButton} ${styles.previewOptionButtonYes}`}
+                                data-hero-option-trade="yes"
+                                data-yes-mint={option.yesMint}
+                                onClick={() => handleTradeClick(market, "yes", option)}
+                                aria-label={`Comprar Sí en ${option.name}`}
+                              >
+                                Sí
+                              </button>
+                              <button
+                                type="button"
+                                className={`${styles.previewOptionButton} ${styles.previewOptionButtonNo}`}
+                                data-hero-option-trade="no"
+                                data-no-mint={option.noMint}
+                                onClick={() => handleTradeClick(market, "no", option)}
+                                aria-label={`Comprar No en ${option.name}`}
+                              >
+                                No
+                              </button>
                             </div>
                           ))}
                         </div>

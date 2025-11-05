@@ -44,4 +44,22 @@
       0 0 0 2px var(--color-bg),
       0 0 0 4px var(--color-focus);
   }
+
+  @media (max-width: 767px) {
+    .root {
+      width: 36px;
+      height: 20px;
+    }
+
+    .root::after {
+      top: 2px;
+      left: 2px;
+      width: 16px;
+      height: 16px;
+    }
+
+    .root:checked::after {
+      transform: translateX(16px);
+    }
+  }
 }

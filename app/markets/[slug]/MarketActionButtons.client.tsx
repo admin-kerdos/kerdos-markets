@@ -103,31 +103,29 @@ export default function MarketActionButtons({
               <span className={styles.multiOptionName} title={option.name} data-market-option-name>
                 {option.name}
               </span>
-              <div className={styles.multiOptionControls}>
-                <span className={styles.multiOptionProbability} data-market-option-probability>
-                  {formatOptionProbability(option.probability)}
-                </span>
-                <button
-                  type="button"
-                  className={`${styles.multiOptionButton} ${styles.multiOptionButtonYes}`}
-                  onClick={() => handleOptionTrade(option, "yes")}
-                  data-market-option-action="yes"
-                  data-yes-mint={option.yesMint}
-                  aria-label={`Comprar Sí en ${option.name}`}
-                >
-                  Sí
-                </button>
-                <button
-                  type="button"
-                  className={`${styles.multiOptionButton} ${styles.multiOptionButtonNo}`}
-                  onClick={() => handleOptionTrade(option, "no")}
-                  data-market-option-action="no"
-                  data-no-mint={option.noMint}
-                  aria-label={`Comprar No en ${option.name}`}
-                >
-                  No
-                </button>
-              </div>
+              <span className={styles.multiOptionProbability} data-market-option-probability>
+                {formatOptionProbability(option.probability)}
+              </span>
+              <button
+                type="button"
+                className={`${styles.multiOptionButton} ${styles.multiOptionButtonYes}`}
+                onClick={() => handleOptionTrade(option, "yes")}
+                data-market-option-action="yes"
+                data-yes-mint={option.yesMint}
+                aria-label={`Comprar Sí en ${option.name}`}
+              >
+                Sí
+              </button>
+              <button
+                type="button"
+                className={`${styles.multiOptionButton} ${styles.multiOptionButtonNo}`}
+                onClick={() => handleOptionTrade(option, "no")}
+                data-market-option-action="no"
+                data-no-mint={option.noMint}
+                aria-label={`Comprar No en ${option.name}`}
+              >
+                No
+              </button>
             </div>
           ))
         ) : (
