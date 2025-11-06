@@ -104,7 +104,7 @@ test.describe("header auth buttons", () => {
 
     await page.goto("/markets/cr-elecciones-ganador-2026");
     const yesButton = page.locator("[data-market-option-action='yes']").first();
-    await expect(yesButton).toHaveCSS("background-color", "rgb(22, 163, 74)");
+    await expect(yesButton).toHaveCSS("background-color", "rgb(21, 128, 61)");
   });
 
   test("hero header and content share the same left alignment", async ({ page }) => {

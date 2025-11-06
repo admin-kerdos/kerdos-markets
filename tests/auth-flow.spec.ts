@@ -27,23 +27,33 @@ const TEST_AUTOMATION = {
 type PrimeOptions = {
   emailEnabled?: boolean;
   wallets?: Partial<typeof TEST_WALLETS> | null;
+  resendCooldown?: number;
 };
 
 async function primeTestGlobals(page, options: PrimeOptions = {}): Promise<void> {
-  const { emailEnabled = true, wallets = TEST_WALLETS } = options;
+  const { emailEnabled = true, wallets = TEST_WALLETS, resendCooldown } = options;
   await page.addInitScript(
-    ({ wallets, automation, emailEnabled: enabled }) => {
+    ({ wallets, automation, emailEnabled: enabled, resendCooldown: cooldown }) => {
       // @ts-expect-error instrumentation for Playwright tests
       globalThis.__KERDOS_TEST_WALLETS__ = wallets;
       // @ts-expect-error instrumentation for Playwright tests
       globalThis.__KERDOS_AUTOMATION__ = automation;
       // @ts-expect-error instrumentation for Playwright tests
-      globalThis.__KERDOS_EMAIL_PROVIDER_ENABLED__ = enabled;
+      globalThis.__KERDOS_EMAIL_SIGNIN_ENABLED__ = enabled;
+      // @ts-expect-error instrumentation for Playwright tests
+      if (typeof cooldown === "number") {
+        // @ts-expect-error instrumentation for Playwright tests
+        globalThis.__KERDOS_EMAIL_RESEND_COOLDOWN__ = cooldown;
+      } else {
+        // @ts-expect-error instrumentation for Playwright tests
+        delete globalThis.__KERDOS_EMAIL_RESEND_COOLDOWN__;
+      }
     },
     {
       wallets,
       automation: TEST_AUTOMATION,
-      emailEnabled
+      emailEnabled,
+      resendCooldown
     }
   );
 }
@@ -161,7 +171,11 @@ test.describe("Autenticación", () => {
   test("Continuar con correo envía el formulario con el email", async ({ page }) => {
     await primeTestGlobals(page, { emailEnabled: true });
     await page.route("**/api/auth/signin/email", async (route) => {
-      await route.fulfill({ status: 200, contentType: "text/plain", body: "ok" });
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ ok: true })
+      });
     });
 
     await page.goto("/");
@@ -179,6 +193,51 @@ test.describe("Autenticación", () => {
     expect(formData.get("email")).toBe(EMAIL_TEST_ADDRESS);
     expect(formData.has("csrfToken")).toBe(true);
     expect(formData.has("callbackUrl")).toBe(true);
+
+    await expect(page.getByText("Te enviamos un enlace", { exact: false })).toBeVisible();
+    const resendButton = page.getByRole("button", { name: "Reenviar enlace" });
+    await expect(resendButton).toBeVisible();
+    await expect(resendButton).toHaveText(/Reenviar en/);
+  });
+
+  test("respeta el cooldown antes de reenviar el enlace", async ({ page }) => {
+    await primeTestGlobals(page, { emailEnabled: true, resendCooldown: 2 });
+
+    let attempt = 0;
+    await page.route("**/api/auth/signin/email", async (route) => {
+      attempt += 1;
+      if (attempt === 2) {
+        await route.fulfill({
+          status: 429,
+          contentType: "application/json",
+          body: JSON.stringify({ message: "Demasiadas solicitudes. Intenta de nuevo en 30 segundos.", cooldown: 2 })
+        });
+        return;
+      }
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ ok: true })
+      });
+    });
+
+    await page.goto("/");
+    await page.getByRole("button", { name: "Iniciar sesión" }).click();
+    const dialog = page.getByRole("dialog", { name: "Inicia sesión" });
+
+    await dialog.getByLabel("Correo electrónico").fill(EMAIL_TEST_ADDRESS);
+    await dialog.getByRole("button", { name: "Continuar con correo" }).click();
+
+    const resendButton = dialog.getByRole("button", { name: "Reenviar enlace" });
+    await expect(resendButton).toHaveText(/Reenviar en/);
+
+    await page.waitForTimeout(2200);
+    await expect(resendButton).toHaveText(/Reenviar$/);
+    await resendButton.click();
+
+    const toast = dialog.locator("[data-auth-toast]");
+    await expect(toast).toContainText("Demasiadas solicitudes");
+    await expect(resendButton).toHaveText(/Reenviar en/);
   });
 
   test("cuando el proveedor de correo no está habilitado muestra un mensaje informativo", async ({ page }) => {
@@ -191,11 +250,13 @@ test.describe("Autenticación", () => {
     await page.getByRole("button", { name: "Iniciar sesión" }).click();
     const dialog = page.getByRole("dialog", { name: "Inicia sesión" });
 
-    await expect(dialog.getByRole("button", { name: "Continuar con correo" })).toBeDisabled();
+    const submitButton = dialog.getByRole("button", { name: "Continuar con correo" });
+    await expect(submitButton).toBeDisabled();
     await dialog.getByLabel("Correo electrónico").fill(EMAIL_TEST_ADDRESS);
-    await expect(dialog.getByRole("button", { name: "Continuar con correo" })).toBeEnabled();
+    await expect(submitButton).toBeEnabled();
+    await expect(submitButton).toHaveAttribute("aria-disabled", "true");
     const toastLocator = dialog.locator("[data-auth-toast]");
-    await dialog.getByRole("button", { name: "Continuar con correo" }).click();
+    await submitButton.click();
     await toastLocator.waitFor({ state: "visible" });
     await expect(toastLocator).toContainText("Aún no habilitamos el acceso con correo en esta versión.");
     await page.waitForTimeout(3400);
@@ -224,6 +285,14 @@ test.describe("Autenticación", () => {
     await emailInput.press("Enter");
     const request = await requestPromise;
     expect(request.method()).toBe("POST");
+  });
+
+  test("muestra un aviso cuando el enlace expiró", async ({ page }) => {
+    await primeTestGlobals(page, { emailEnabled: true });
+    await page.goto("/?authModal=login&authError=email-expired");
+    const dialog = page.getByRole("dialog", { name: "Inicia sesión" });
+    const toast = dialog.locator("[data-auth-toast]");
+    await expect(toast).toContainText("El enlace expiró. Volvé a solicitarlo.");
   });
 
   test("en móviles el modal no desborda y mantiene iconos alineados", async ({ page }) => {
@@ -294,6 +363,56 @@ test.describe("Autenticación", () => {
 
     await page.waitForTimeout(4200);
     await expect(feedback).not.toBeVisible();
+  });
+
+  test("cierra el modal tras verificar el enlace enviado por correo", async ({ page }) => {
+    await primeTestGlobals(page, { emailEnabled: true, resendCooldown: 1 });
+
+    await page.route("**/api/auth/signin/email", async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ ok: true })
+      });
+    });
+
+    let provideSession = false;
+    await page.route("**/api/auth/session", async (route) => {
+      if (!provideSession) {
+        await route.fallback();
+        return;
+      }
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          user: {
+            id: "email-user",
+            name: "Usuario Email",
+            email: EMAIL_TEST_ADDRESS,
+            provider: "email"
+          },
+          expires: new Date(Date.now() + 60 * 60 * 1000).toISOString()
+        })
+      });
+    });
+
+    await page.goto("/");
+    await page.getByRole("button", { name: "Iniciar sesión" }).click();
+    await page.getByLabel("Correo electrónico").fill(EMAIL_TEST_ADDRESS);
+    await page.getByRole("button", { name: "Continuar con correo" }).click();
+
+    await setSessionCookie(page, {
+      sub: "email-user",
+      name: "Usuario Email",
+      email: EMAIL_TEST_ADDRESS,
+      provider: "email"
+    });
+    provideSession = true;
+    await page.reload();
+
+    await expect(page.getByRole("dialog")).toHaveCount(0);
+    await expect(page.locator('[aria-haspopup="menu"]')).toBeVisible();
   });
 
   test("la cabecera muestra el menú después de una sesión activa", async ({ page }) => {

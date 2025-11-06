@@ -273,29 +273,29 @@
 }
 
 .multiOptionButtonYes {
-  background-color: #16a34a;
+  background-color: var(--color-success);
 }
 
 .multiOptionButtonYes:hover,
 .multiOptionButtonYes:focus-visible {
-  background-color: #15803d;
+  background-color: var(--color-success-strong);
 }
 
 .multiOptionButtonYes:active {
-  background-color: #166534;
+  background-color: var(--color-success-active);
 }
 
 .multiOptionButtonNo {
-  background-color: #dc2626;
+  background-color: var(--color-danger);
 }
 
 .multiOptionButtonNo:hover,
 .multiOptionButtonNo:focus-visible {
-  background-color: #b91c1c;
+  background-color: var(--color-danger-strong);
 }
 
 .multiOptionButtonNo:active {
-  background-color: #991b1b;
+  background-color: var(--color-danger-active);
 }
 
 .multiOptionButton:hover {
@@ -328,29 +328,29 @@
 }
 
   .actionButtonYes {
-    background-color: #16a34a;
+    background-color: var(--color-success);
   }
 
   .actionButtonYes:hover,
   .actionButtonYes:focus-visible {
-    background-color: #15803d;
+    background-color: var(--color-success-strong);
   }
 
   .actionButtonYes:active {
-    background-color: #166534;
+    background-color: var(--color-success-active);
   }
 
   .actionButtonNo {
-    background-color: #dc2626;
+    background-color: var(--color-danger);
   }
 
   .actionButtonNo:hover,
   .actionButtonNo:focus-visible {
-    background-color: #b91c1c;
+    background-color: var(--color-danger-strong);
   }
 
   .actionButtonNo:active {
-    background-color: #991b1b;
+    background-color: var(--color-danger-active);
   }
 
   .actionButton:focus-visible {
@@ -527,14 +527,14 @@
   }
 
   .tradeModalSideActiveYes {
-    background: rgba(22, 163, 74, 0.14);
-    color: #166534;
+    background: color-mix(in srgb, var(--color-success) 14%, transparent);
+    color: var(--color-success);
     transform: translateY(-1px);
   }
 
   .tradeModalSideActiveNo {
-    background: rgba(220, 38, 38, 0.16);
-    color: #b91c1c;
+    background: color-mix(in srgb, var(--color-danger) 16%, transparent);
+    color: var(--color-danger);
     transform: translateY(-1px);
   }
 

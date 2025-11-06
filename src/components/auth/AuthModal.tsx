@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { X } from "lucide-react";
 import styles from "@/styles/components/AuthModal.module.css";
 import { useAuth } from "./AuthProvider";
@@ -50,14 +50,67 @@ const walletIcons: Record<WalletOption, JSX.Element> = {
 };
 
 export default function AuthModal() {
-  const { state, closeAuthModal, signInWithGoogle, signInWithEmail, signInWithWallet, modalError, walletError } = useAuth();
+  const {
+    state,
+    closeAuthModal,
+    signInWithGoogle,
+    signInWithEmail,
+    signInWithWallet,
+    modalError,
+    walletError,
+    emailSignInEnabled,
+    modalToast,
+    consumeModalToast
+  } = useAuth();
 
   const [emailValue, setEmailValue] = useState("");
   const [isEmailSubmitting, setIsEmailSubmitting] = useState(false);
   const [isEmailValid, setIsEmailValid] = useState(false);
+  const [emailPhase, setEmailPhase] = useState<"idle" | "sent">("idle");
+  const [countdown, setCountdown] = useState(0);
+  const [lastEmailSent, setLastEmailSent] = useState("");
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [phantomImageError, setPhantomImageError] = useState(false);
   const [solflareImageError, setSolflareImageError] = useState(false);
+
+  const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const resendCooldownSeconds = useMemo(() => {
+    if (typeof window !== "undefined") {
+      const override = Number((window as unknown as { __KERDOS_EMAIL_RESEND_COOLDOWN__?: unknown }).__KERDOS_EMAIL_RESEND_COOLDOWN__);
+      if (Number.isFinite(override) && override > 0) {
+        return Math.floor(override);
+      }
+    }
+    return 30;
+  }, []);
+
+  const clearCountdown = useCallback(() => {
+    if (countdownRef.current !== null) {
+      clearInterval(countdownRef.current);
+      countdownRef.current = null;
+    }
+  }, []);
+
+  const startCountdown = useCallback(
+    (seconds?: number) => {
+      if (typeof window === "undefined") return;
+      const total = typeof seconds === "number" && seconds > 0 ? Math.round(seconds) : resendCooldownSeconds;
+      setEmailPhase("sent");
+      setCountdown(total);
+      clearCountdown();
+      countdownRef.current = window.setInterval(() => {
+        setCountdown((prev) => {
+          if (prev <= 1) {
+            clearCountdown();
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    },
+    [clearCountdown, resendCooldownSeconds]
+  );
 
   useEffect(() => {
     if (!state.modalOpen) return;
@@ -76,36 +129,113 @@ export default function AuthModal() {
   }, [closeAuthModal, state.modalOpen]);
 
   useEffect(() => {
-    if (!state.modalOpen) {
-      setEmailValue("");
-      setIsEmailValid(false);
-      setToastMessage(null);
-      setIsEmailSubmitting(false);
-    }
-  }, [state.modalOpen]);
+    if (state.modalOpen) return;
+    setEmailValue("");
+    setIsEmailValid(false);
+    setToastMessage(null);
+    setIsEmailSubmitting(false);
+    setEmailPhase("idle");
+    setLastEmailSent("");
+    setCountdown(0);
+    clearCountdown();
+  }, [state.modalOpen, clearCountdown]);
 
   useEffect(() => {
     if (!toastMessage) return;
+    if (typeof window === "undefined") return;
     const timeout = window.setTimeout(() => {
       setToastMessage(null);
     }, 3200);
     return () => window.clearTimeout(timeout);
   }, [toastMessage]);
 
+  useEffect(() => {
+    if (!modalToast) return;
+    setToastMessage(modalToast);
+    consumeModalToast();
+    setEmailPhase("idle");
+    setCountdown(0);
+    clearCountdown();
+  }, [modalToast, consumeModalToast, clearCountdown]);
+
+  useEffect(() => {
+    if (emailSignInEnabled || emailPhase !== "sent") return;
+    setEmailPhase("idle");
+    setCountdown(0);
+    clearCountdown();
+  }, [emailSignInEnabled, emailPhase, clearCountdown]);
+
   if (!state.modalOpen) return null;
 
   const title = state.intent === "signup" ? "Crea tu cuenta" : "Inicia sesión";
+  const handleEmailChange = (value: string) => {
+    setEmailValue(value);
+    const trimmed = value.trim();
+    setIsEmailValid(/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed));
+    if (emailPhase === "sent") {
+      setEmailPhase("idle");
+      setCountdown(0);
+      setLastEmailSent("");
+      clearCountdown();
+    }
+  };
+
   const handleEmailSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (isEmailSubmitting) return;
+    if (!isEmailValid) return;
+
+    if (!emailSignInEnabled) {
+      setToastMessage("Aún no habilitamos el acceso con correo en esta versión.");
+      return;
+    }
+
+    setIsEmailSubmitting(true);
+    const trimmed = emailValue.trim();
+    try {
+      const result = await signInWithEmail(trimmed);
+      if (result.ok) {
+        setLastEmailSent(trimmed);
+        startCountdown();
+      } else {
+        if (typeof result.cooldown === "number") {
+          setLastEmailSent(trimmed);
+          startCountdown(result.cooldown);
+        } else {
+          setEmailPhase("idle");
+          clearCountdown();
+        }
+        if (result.message) {
+          setToastMessage(result.message);
+        }
+      }
+    } finally {
+      setIsEmailSubmitting(false);
+    }
+  };
+
+  const handleResend = async () => {
+    if (isEmailSubmitting || countdown > 0 || !lastEmailSent) return;
+    if (!emailSignInEnabled) {
+      setToastMessage("Aún no habilitamos el acceso con correo en esta versión.");
+      return;
+    }
+
     setIsEmailSubmitting(true);
     try {
-      const result = await signInWithEmail(emailValue.trim());
+      const result = await signInWithEmail(lastEmailSent);
       if (result.ok) {
-        setEmailValue("");
-        setIsEmailValid(false);
-      } else if (result.message) {
-        setToastMessage(result.message);
+        startCountdown();
+      } else {
+        if (typeof result.cooldown === "number") {
+          startCountdown(result.cooldown);
+        } else {
+          setEmailPhase("idle");
+          clearCountdown();
+        }
+        if (result.message) {
+          setToastMessage(result.message);
+        }
       }
     } finally {
       setIsEmailSubmitting(false);
@@ -151,36 +281,54 @@ export default function AuthModal() {
             </span>
             <span className={styles.dividerLine} aria-hidden="true" />
           </div>
-          <form className={styles.emailRow} onSubmit={handleEmailSubmit} noValidate data-auth-section="email">
-            <label htmlFor="auth-email-input" className={styles.srOnly}>
-              Correo electrónico
-            </label>
-            <input
-              id="auth-email-input"
-              name="email"
-              type="email"
-              inputMode="email"
-              autoComplete="email"
-              placeholder="correo@ejemplo.com"
-              aria-label="Correo electrónico"
-              value={emailValue}
-              onChange={(event) => {
-                setEmailValue(event.target.value);
-                const nextValue = event.target.value.trim();
-                const pattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-                setIsEmailValid(pattern.test(nextValue));
-              }}
-              className={styles.emailInput}
-            />
-            <button
-              type="submit"
-              className={styles.emailButton}
-              disabled={!isEmailValid || isEmailSubmitting}
-              aria-label="Continuar con correo"
-            >
-              Continuar
-            </button>
-          </form>
+          {emailPhase === "idle" ? (
+            <form className={styles.emailRow} onSubmit={handleEmailSubmit} noValidate data-auth-section="email">
+              <label htmlFor="auth-email-input" className={styles.srOnly}>
+                Correo electrónico
+              </label>
+              <input
+                id="auth-email-input"
+                name="email"
+                type="email"
+                inputMode="email"
+                autoComplete="email"
+                placeholder="correo@ejemplo.com"
+                aria-label="Correo electrónico"
+                value={emailValue}
+                onChange={(event) => handleEmailChange(event.target.value)}
+                className={styles.emailInput}
+              />
+              <button
+                type="submit"
+                className={styles.emailButton}
+                disabled={!isEmailValid || isEmailSubmitting}
+                aria-disabled={!emailSignInEnabled || !isEmailValid || isEmailSubmitting}
+                aria-label="Continuar con correo"
+                data-disabled={!emailSignInEnabled || !isEmailValid || isEmailSubmitting ? "true" : undefined}
+              >
+                {isEmailSubmitting ? "Enviando..." : "Continuar"}
+              </button>
+            </form>
+          ) : (
+            <div className={styles.emailSuccess} data-auth-section="email">
+              <span className={styles.emailSuccessMessage}>Te enviamos un enlace a tu correo.</span>
+              <button
+                type="button"
+                className={styles.emailResendButton}
+                onClick={handleResend}
+                disabled={isEmailSubmitting || countdown > 0}
+                aria-disabled={isEmailSubmitting || countdown > 0}
+                aria-label="Reenviar enlace"
+                data-disabled={isEmailSubmitting || countdown > 0 ? "true" : undefined}
+              >
+                {isEmailSubmitting
+                  ? "Reenviando..."
+                  : countdown > 0
+                    ? `Reenviar en ${countdown}s`
+                    : "Reenviar"}
+              </button>
+            </div>
+          )}
           <div
             className={styles.walletRow}
             role="group"

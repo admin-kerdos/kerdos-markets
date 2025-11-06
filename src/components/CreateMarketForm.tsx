@@ -119,8 +119,8 @@ export default function CreateMarketForm({ connection, programIdStr }: Props) {
 
       <button type="submit">Create market</button>
 
-      {error && <div style={{ color: "crimson", fontSize: 12 }}>{error}</div>}
-      {ok && <div style={{ color: "green", fontSize: 12 }}>Validated. Wire to SDK next.</div>}
+      {error && <div style={{ color: "var(--color-danger)", fontSize: 12 }}>{error}</div>}
+      {ok && <div style={{ color: "var(--color-success)", fontSize: 12 }}>Validated. Wire to SDK next.</div>}
     </form>
   );
 }

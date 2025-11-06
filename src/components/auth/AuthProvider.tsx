@@ -21,8 +21,8 @@ const normalizeFlag = (value: string | undefined): boolean => {
   return normalized === "true" || normalized === "1" || normalized === "yes";
 };
 
-const EMAIL_PROVIDER_ENABLED =
-  normalizeFlag(process.env.NEXT_PUBLIC_EMAIL_PROVIDER_ENABLED) || normalizeFlag(process.env.EMAIL_PROVIDER_ENABLED);
+const EMAIL_SIGNIN_FLAG =
+  normalizeFlag(process.env.NEXT_PUBLIC_EMAIL_SIGNIN_ENABLED) || normalizeFlag(process.env.EMAIL_SIGNIN_ENABLED);
 
 const GOOGLE_PROVIDER_ID = "google";
 
@@ -48,6 +48,8 @@ type AuthState = {
 type EmailSignInResult = {
   ok: boolean;
   message?: string;
+  cooldown?: number;
+  notEnabled?: boolean;
 };
 
 type AuthContextValue = {
@@ -60,7 +62,9 @@ type AuthContextValue = {
   signInWithEmail: (email: string) => Promise<EmailSignInResult>;
   signInWithWallet: (wallet: WalletProvider) => Promise<void>;
   signOut: () => Promise<void>;
-  emailProviderEnabled: boolean;
+  emailSignInEnabled: boolean;
+  modalToast: string | null;
+  consumeModalToast: () => void;
 };
 
 type AutomationWalletStub = {
@@ -75,7 +79,7 @@ declare global {
     __KERDOS_AUTOMATION__?: {
       wallet?: Partial<Record<WalletProvider, AutomationWalletStub>>;
     };
-    __KERDOS_EMAIL_PROVIDER_ENABLED__?: boolean;
+    __KERDOS_EMAIL_SIGNIN_ENABLED__?: boolean;
   }
 }
 
@@ -110,14 +114,30 @@ export function AuthProvider({ children }: Props) {
   const [intent, setIntent] = useState<AuthIntent>("login");
   const [modalError, setModalError] = useState<string | null>(null);
   const [walletError, setWalletError] = useState<string | null>(null);
-  const [emailProviderEnabled, setEmailProviderEnabled] = useState<boolean>(() => {
-    if (typeof window !== "undefined" && typeof window.__KERDOS_EMAIL_PROVIDER_ENABLED__ === "boolean") {
-      return window.__KERDOS_EMAIL_PROVIDER_ENABLED__;
+  const [emailSignInEnabled, setEmailSignInEnabled] = useState<boolean>(() => {
+    if (typeof window !== "undefined" && typeof window.__KERDOS_EMAIL_SIGNIN_ENABLED__ === "boolean") {
+      return window.__KERDOS_EMAIL_SIGNIN_ENABLED__;
     }
-    return EMAIL_PROVIDER_ENABLED;
+    return EMAIL_SIGNIN_FLAG;
   });
+  const [modalToast, setModalToast] = useState<string | null>(null);
 
   const { wallets, select, connect, publicKey, disconnect, signMessage } = useWallet();
+
+  const openAuthModal = useCallback((nextIntent: AuthIntent = "login") => {
+    setIntent(nextIntent);
+    setModalError(null);
+    setWalletError(null);
+    setModalToast(null);
+    setModalOpen(true);
+  }, []);
+
+  const closeAuthModal = useCallback(() => {
+    setModalOpen(false);
+    setModalError(null);
+    setWalletError(null);
+    setModalToast(null);
+  }, []);
 
   const refreshSession = useCallback(async () => {
     setStatus("loading");
@@ -132,11 +152,45 @@ export function AuthProvider({ children }: Props) {
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-    const override = window.__KERDOS_EMAIL_PROVIDER_ENABLED__;
+    const override = window.__KERDOS_EMAIL_SIGNIN_ENABLED__;
     if (typeof override === "boolean") {
-      setEmailProviderEnabled(override);
+      setEmailSignInEnabled(override);
     }
   }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const currentUrl = new URL(window.location.href);
+    const authError = currentUrl.searchParams.get("authError");
+    const authModal = currentUrl.searchParams.get("authModal");
+
+    if (authModal === "login" && !modalOpen) {
+      openAuthModal("login");
+    }
+
+    if (authError === "email-expired") {
+      setModalToast("El enlace expiró. Volvé a solicitarlo.");
+      if (!modalOpen) {
+        openAuthModal("login");
+      }
+    }
+
+    if (authError || authModal) {
+      currentUrl.searchParams.delete("authError");
+      currentUrl.searchParams.delete("authModal");
+      window.history.replaceState({}, document.title, currentUrl.toString());
+    }
+  }, [modalOpen, openAuthModal]);
+
+  useEffect(() => {
+    if (!modalOpen) return;
+    if (status === "authenticated") {
+      setModalOpen(false);
+      setModalError(null);
+      setWalletError(null);
+      setModalToast(null);
+    }
+  }, [modalOpen, status]);
 
   useEffect(() => {
     if (!walletError) return;
@@ -145,19 +199,6 @@ export function AuthProvider({ children }: Props) {
     }, 4000);
     return () => window.clearTimeout(timeout);
   }, [walletError]);
-
-  const openAuthModal = useCallback((nextIntent: AuthIntent = "login") => {
-    setIntent(nextIntent);
-    setModalError(null);
-    setWalletError(null);
-    setModalOpen(true);
-  }, []);
-
-  const closeAuthModal = useCallback(() => {
-    setModalOpen(false);
-    setModalError(null);
-    setWalletError(null);
-  }, []);
 
   const signInWithGoogle = useCallback(() => {
     setModalError(null);
@@ -229,9 +270,9 @@ export function AuthProvider({ children }: Props) {
         return { ok: false, message: "Ingresa un correo electrónico válido." };
       }
 
-      if (!emailProviderEnabled) {
-        console.info("Email sign-in provider not configured; showing stub response.");
-        return { ok: false, message: "Aún no habilitamos el acceso con correo en esta versión." };
+      if (!emailSignInEnabled) {
+        console.info("Email sign-in provider disabled; showing stub response.");
+        return { ok: false, message: "Aún no habilitamos el acceso con correo en esta versión.", notEnabled: true };
       }
 
       try {
@@ -254,43 +295,52 @@ export function AuthProvider({ children }: Props) {
           throw new Error("Token CSRF inválido.");
         }
 
-        const form = document.createElement("form");
-        form.method = "POST";
-        form.action = "/api/auth/signin/email";
-        form.style.display = "none";
+        const body = new URLSearchParams({
+          email,
+          csrfToken,
+          callbackUrl,
+          redirect: "false"
+        });
 
-        const csrfInput = document.createElement("input");
-        csrfInput.type = "hidden";
-        csrfInput.name = "csrfToken";
-        csrfInput.value = csrfToken;
-        form.appendChild(csrfInput);
+        const response = await fetch("/api/auth/signin/email?redirect=false", {
+          method: "POST",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+            Accept: "application/json",
+            "X-Requested-With": "XMLHttpRequest"
+          },
+          body: body.toString()
+        });
 
-        const emailInput = document.createElement("input");
-        emailInput.type = "hidden";
-        emailInput.name = "email";
-        emailInput.value = email;
-        form.appendChild(emailInput);
+        const payload = await response.json().catch(() => ({}));
 
-        const callbackInput = document.createElement("input");
-        callbackInput.type = "hidden";
-        callbackInput.name = "callbackUrl";
-        callbackInput.value = callbackUrl;
-        form.appendChild(callbackInput);
+        if (response.status === 429) {
+          return {
+            ok: false,
+            message:
+              (payload?.message as string | undefined) ??
+              "Demasiadas solicitudes. Intenta de nuevo en unos segundos.",
+            cooldown: typeof payload?.cooldown === "number" ? payload.cooldown : undefined
+          };
+        }
 
-        document.body.appendChild(form);
-        form.submit();
-        setTimeout(() => {
-          form.remove();
-        }, 2000);
+        if (!response.ok) {
+          return {
+            ok: false,
+            message:
+              (payload?.message as string | undefined) ??
+              "No se pudo enviar el enlace de acceso. Inténtalo de nuevo."
+          };
+        }
 
-        setModalOpen(false);
         return { ok: true };
       } catch (error) {
         console.error("Error iniciando sesión con correo", error);
         return { ok: false, message: "No se pudo enviar el enlace de acceso. Inténtalo de nuevo." };
       }
     },
-    [emailProviderEnabled, setModalOpen]
+    [emailSignInEnabled]
   );
 
   const ensureWalletReady = useCallback(
@@ -430,6 +480,10 @@ export function AuthProvider({ children }: Props) {
     }
   }, [refreshSession]);
 
+  const consumeModalToast = useCallback(() => {
+    setModalToast(null);
+  }, []);
+
   const value = useMemo<AuthContextValue>(
     () => ({
       state: {
@@ -446,9 +500,27 @@ export function AuthProvider({ children }: Props) {
       signInWithEmail,
       signInWithWallet,
       signOut,
-      emailProviderEnabled
+      emailSignInEnabled,
+      modalToast,
+      consumeModalToast
     }),
-    [status, user, modalOpen, intent, modalError, walletError, openAuthModal, closeAuthModal, signInWithGoogle, signInWithEmail, signInWithWallet, signOut, emailProviderEnabled]
+    [
+      status,
+      user,
+      modalOpen,
+      intent,
+      modalError,
+      walletError,
+      openAuthModal,
+      closeAuthModal,
+      signInWithGoogle,
+      signInWithEmail,
+      signInWithWallet,
+      signOut,
+      emailSignInEnabled,
+      modalToast,
+      consumeModalToast
+    ]
   );
 
   return (

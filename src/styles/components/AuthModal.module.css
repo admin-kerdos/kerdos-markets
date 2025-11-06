@@ -142,6 +142,11 @@
     cursor: progress;
   }
 
+  .emailButton[data-disabled="true"] {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
   .emailButton:not(:disabled):hover {
     transform: translateY(-1px);
     box-shadow: var(--shadow-soft);
@@ -271,6 +276,67 @@
 
   .footerSeparator {
     color: inherit;
+  }
+
+  .emailSuccess {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-2);
+    background: color-mix(in srgb, var(--color-surface) 87%, transparent);
+    border: 1px solid color-mix(in srgb, var(--color-border) 70%, transparent);
+    border-radius: 14px;
+    padding: 0.55rem 0.75rem;
+  }
+
+  .emailSuccessMessage {
+    font-size: 0.84rem;
+    color: var(--color-text);
+    text-align: left;
+    flex: 1 1 auto;
+  }
+
+  .emailSuccessMessage strong {
+    font-weight: 600;
+  }
+
+  .emailResendButton {
+    border: none;
+    border-radius: 12px;
+    padding: 0.4rem 0.85rem;
+    background: color-mix(in srgb, #d97706 92%, transparent);
+    color: #fffefc;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition:
+      transform var(--transition-short),
+      box-shadow var(--transition-base),
+      filter var(--transition-base);
+    flex: 0 0 auto;
+  }
+
+  .emailResendButton[aria-disabled="true"] {
+    opacity: 0.6;
+    cursor: progress;
+  }
+
+  .emailResendButton[data-disabled="true"] {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  .emailResendButton:not([aria-disabled="true"]):hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-soft);
+    filter: brightness(1.02);
+  }
+
+  .emailResendButton:focus-visible {
+    outline: none;
+    box-shadow:
+      0 0 0 2px var(--color-bg),
+      0 0 0 4px var(--color-focus);
   }
 
   .providerButton:hover {

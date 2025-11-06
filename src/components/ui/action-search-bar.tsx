@@ -64,7 +64,7 @@ const defaultActions: Action[] = [
   {
     id: "jarvis",
     label: "Talk to Jarvis",
-    icon: <AudioLines className="h-4 w-4 text-green-500" />,
+    icon: <AudioLines className="h-4 w-4 text-[color:var(--color-success)]" />,
     description: "gpt-4o voice",
     end: "Active"
   },
