@@ -1,6 +1,6 @@
 import { randomUUID } from "crypto";
 
-export type ProviderKind = "google" | "wallet";
+export type ProviderKind = "google" | "wallet" | "email";
 export type WalletProvider = "phantom" | "solflare";
 
 export type AuthUserRecord = {
@@ -18,6 +18,11 @@ type GoogleProfile = {
   email: string;
   name: string;
   image?: string | null;
+};
+
+type EmailProfile = {
+  email: string;
+  name?: string | null;
 };
 
 type WalletProfile = {
@@ -74,6 +79,29 @@ export function upsertGoogleUser(profile: GoogleProfile): AuthUserRecord {
     name: profile.name,
     email: profile.email,
     image: profile.image ?? null
+  });
+  usersById.set(record.id, record);
+  emailIndex.set(profile.email.toLowerCase(), record.id);
+  return record;
+}
+
+export function upsertEmailUser(profile: EmailProfile): AuthUserRecord {
+  const existing = findUserByEmail(profile.email);
+  if (existing) {
+    const updated: AuthUserRecord = {
+      ...existing,
+      provider: "email",
+      name: profile.name ?? existing.name
+    };
+    usersById.set(updated.id, updated);
+    return updated;
+  }
+
+  const record = buildRecord({
+    provider: "email",
+    name: profile.name ?? profile.email,
+    email: profile.email,
+    image: null
   });
   usersById.set(record.id, record);
   emailIndex.set(profile.email.toLowerCase(), record.id);

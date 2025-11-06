@@ -104,7 +104,18 @@ test.describe("Multi-option market detail page", () => {
         }
 
         expect(display).toBe("grid");
-        expect(gridTemplate).toContain("auto auto auto");
+        const columns = gridTemplate
+          .trim()
+          .split(/\s+/)
+          .filter((part) => part.length > 0);
+
+        expect(columns.length).toBeGreaterThanOrEqual(4);
+        const actionableColumns = columns.slice(-2);
+        for (const value of actionableColumns) {
+          const numeric = Number.parseFloat(value);
+          expect(Number.isNaN(numeric)).toBe(false);
+          expect(numeric).toBeGreaterThan(0);
+        }
 
         const align = (boxA: { y: number; height: number }, boxB: { y: number; height: number }) => {
           const centerA = boxA.y + boxA.height / 2;

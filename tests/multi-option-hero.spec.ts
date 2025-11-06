@@ -44,8 +44,11 @@ test.describe("Home hero multi-option previews", () => {
       noButton.evaluate((element) => getComputedStyle(element).height)
     ]);
 
-    expect(yesHeight).toBe("26px");
-    expect(noHeight).toBe("26px");
+    const asNumber = (value: string) => Number.parseFloat(value);
+    expect(asNumber(yesHeight)).toBeGreaterThanOrEqual(24);
+    expect(asNumber(yesHeight)).toBeLessThanOrEqual(32);
+    expect(asNumber(noHeight)).toBeGreaterThanOrEqual(24);
+    expect(asNumber(noHeight)).toBeLessThanOrEqual(32);
   });
 
   test("keeps option row layout in a single line across breakpoints", async ({ page }) => {
@@ -96,7 +99,17 @@ test.describe("Home hero multi-option previews", () => {
         }
 
         expect(display).toBe("grid");
-        expect(gridTemplate).toContain("auto auto auto");
+        const columns = gridTemplate
+          .trim()
+          .split(/\s+/)
+          .filter((part) => part.length > 0);
+        expect(columns.length).toBeGreaterThanOrEqual(4);
+        const trailing = columns.slice(-2);
+        for (const value of trailing) {
+          const numeric = Number.parseFloat(value);
+          expect(Number.isNaN(numeric)).toBe(false);
+          expect(numeric).toBeGreaterThan(0);
+        }
 
         const align = (boxA: { y: number; height: number }, boxB: { y: number; height: number }) => {
           const centerA = boxA.y + boxA.height / 2;

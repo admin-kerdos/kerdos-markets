@@ -15,6 +15,15 @@ import { WalletReadyState } from "@solana/wallet-adapter-base";
 import type { WalletProvider } from "@/lib/auth/store";
 import AuthModal from "./AuthModal";
 
+const normalizeFlag = (value: string | undefined): boolean => {
+  if (!value) return false;
+  const normalized = value.trim().toLowerCase();
+  return normalized === "true" || normalized === "1" || normalized === "yes";
+};
+
+const EMAIL_PROVIDER_ENABLED =
+  normalizeFlag(process.env.NEXT_PUBLIC_EMAIL_PROVIDER_ENABLED) || normalizeFlag(process.env.EMAIL_PROVIDER_ENABLED);
+
 const GOOGLE_PROVIDER_ID = "google";
 
 type SessionUser = {
@@ -22,7 +31,7 @@ type SessionUser = {
   name?: string | null;
   email?: string | null;
   image?: string | null;
-  provider?: "google" | "wallet";
+  provider?: "google" | "wallet" | "email";
   publicKey?: string | null;
   walletType?: WalletProvider | null;
 };
@@ -36,14 +45,22 @@ type AuthState = {
   intent: AuthIntent;
 };
 
+type EmailSignInResult = {
+  ok: boolean;
+  message?: string;
+};
+
 type AuthContextValue = {
   state: AuthState;
   modalError: string | null;
+  walletError: string | null;
   openAuthModal: (intent?: AuthIntent) => void;
   closeAuthModal: () => void;
   signInWithGoogle: () => void;
+  signInWithEmail: (email: string) => Promise<EmailSignInResult>;
   signInWithWallet: (wallet: WalletProvider) => Promise<void>;
   signOut: () => Promise<void>;
+  emailProviderEnabled: boolean;
 };
 
 type AutomationWalletStub = {
@@ -58,6 +75,7 @@ declare global {
     __KERDOS_AUTOMATION__?: {
       wallet?: Partial<Record<WalletProvider, AutomationWalletStub>>;
     };
+    __KERDOS_EMAIL_PROVIDER_ENABLED__?: boolean;
   }
 }
 
@@ -91,6 +109,13 @@ export function AuthProvider({ children }: Props) {
   const [modalOpen, setModalOpen] = useState(false);
   const [intent, setIntent] = useState<AuthIntent>("login");
   const [modalError, setModalError] = useState<string | null>(null);
+  const [walletError, setWalletError] = useState<string | null>(null);
+  const [emailProviderEnabled, setEmailProviderEnabled] = useState<boolean>(() => {
+    if (typeof window !== "undefined" && typeof window.__KERDOS_EMAIL_PROVIDER_ENABLED__ === "boolean") {
+      return window.__KERDOS_EMAIL_PROVIDER_ENABLED__;
+    }
+    return EMAIL_PROVIDER_ENABLED;
+  });
 
   const { wallets, select, connect, publicKey, disconnect, signMessage } = useWallet();
 
@@ -105,15 +130,33 @@ export function AuthProvider({ children }: Props) {
     void refreshSession();
   }, [refreshSession]);
 
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const override = window.__KERDOS_EMAIL_PROVIDER_ENABLED__;
+    if (typeof override === "boolean") {
+      setEmailProviderEnabled(override);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!walletError) return;
+    const timeout = window.setTimeout(() => {
+      setWalletError(null);
+    }, 4000);
+    return () => window.clearTimeout(timeout);
+  }, [walletError]);
+
   const openAuthModal = useCallback((nextIntent: AuthIntent = "login") => {
     setIntent(nextIntent);
     setModalError(null);
+    setWalletError(null);
     setModalOpen(true);
   }, []);
 
   const closeAuthModal = useCallback(() => {
     setModalOpen(false);
     setModalError(null);
+    setWalletError(null);
   }, []);
 
   const signInWithGoogle = useCallback(() => {
@@ -173,6 +216,83 @@ export function AuthProvider({ children }: Props) {
     void initiateGoogleSignIn();
   }, [setModalError, setModalOpen]);
 
+  const signInWithEmail = useCallback(
+    async (rawEmail: string): Promise<EmailSignInResult> => {
+      if (typeof window === "undefined") {
+        console.error("El inicio de sesión con correo requiere un entorno de navegador.");
+        return { ok: false, message: "Esta acción solo está disponible en un navegador compatible." };
+      }
+
+      const email = rawEmail.trim();
+      const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailPattern.test(email)) {
+        return { ok: false, message: "Ingresa un correo electrónico válido." };
+      }
+
+      if (!emailProviderEnabled) {
+        console.info("Email sign-in provider not configured; showing stub response.");
+        return { ok: false, message: "Aún no habilitamos el acceso con correo en esta versión." };
+      }
+
+      try {
+        setModalError(null);
+
+        const { origin, pathname, search } = window.location;
+        const callbackUrl = `${origin}${pathname}${search}`;
+
+        const csrfResponse = await fetch("/api/auth/csrf", {
+          method: "GET",
+          credentials: "include"
+        });
+
+        if (!csrfResponse.ok) {
+          throw new Error("No se pudo obtener el token CSRF.");
+        }
+
+        const { csrfToken } = (await csrfResponse.json()) as { csrfToken?: string };
+        if (!csrfToken) {
+          throw new Error("Token CSRF inválido.");
+        }
+
+        const form = document.createElement("form");
+        form.method = "POST";
+        form.action = "/api/auth/signin/email";
+        form.style.display = "none";
+
+        const csrfInput = document.createElement("input");
+        csrfInput.type = "hidden";
+        csrfInput.name = "csrfToken";
+        csrfInput.value = csrfToken;
+        form.appendChild(csrfInput);
+
+        const emailInput = document.createElement("input");
+        emailInput.type = "hidden";
+        emailInput.name = "email";
+        emailInput.value = email;
+        form.appendChild(emailInput);
+
+        const callbackInput = document.createElement("input");
+        callbackInput.type = "hidden";
+        callbackInput.name = "callbackUrl";
+        callbackInput.value = callbackUrl;
+        form.appendChild(callbackInput);
+
+        document.body.appendChild(form);
+        form.submit();
+        setTimeout(() => {
+          form.remove();
+        }, 2000);
+
+        setModalOpen(false);
+        return { ok: true };
+      } catch (error) {
+        console.error("Error iniciando sesión con correo", error);
+        return { ok: false, message: "No se pudo enviar el enlace de acceso. Inténtalo de nuevo." };
+      }
+    },
+    [emailProviderEnabled, setModalOpen]
+  );
+
   const ensureWalletReady = useCallback(
     async (walletType: WalletProvider): Promise<string> => {
       const targetName = walletType === "phantom" ? "Phantom" : "Solflare";
@@ -209,6 +329,7 @@ export function AuthProvider({ children }: Props) {
       if (automationStub) {
         try {
           setModalError(null);
+          setWalletError(null);
           const redirectTo = automationStub.redirectTo ?? (typeof window !== "undefined" ? window.location.pathname : "/");
           await fetch("/api/siws/verify", {
             method: "POST",
@@ -227,13 +348,14 @@ export function AuthProvider({ children }: Props) {
           return;
         } catch (error) {
           console.error("Error en modo automatizado de wallet", error);
-          setModalError("No se pudo verificar la firma.");
+          setWalletError("No se pudo verificar la firma.");
           return;
         }
       }
 
       try {
         setModalError(null);
+        setWalletError(null);
         const resolvedPublicKey = await ensureWalletReady(walletType);
 
         if (!signMessage) {
@@ -281,11 +403,8 @@ export function AuthProvider({ children }: Props) {
         await refreshSession();
         setModalOpen(false);
       } catch (error) {
-        if (error instanceof Error) {
-          setModalError(error.message);
-        } else {
-          setModalError("Ocurrió un error inesperado al iniciar sesión.");
-        }
+        const message = error instanceof Error ? error.message : "Ocurrió un error inesperado al iniciar sesión.";
+        setWalletError(message);
         await disconnect().catch(() => {});
       }
     },
@@ -320,13 +439,16 @@ export function AuthProvider({ children }: Props) {
         intent
       },
       modalError,
+      walletError,
       openAuthModal,
       closeAuthModal,
       signInWithGoogle,
+      signInWithEmail,
       signInWithWallet,
-      signOut
+      signOut,
+      emailProviderEnabled
     }),
-    [status, user, modalOpen, intent, modalError, openAuthModal, closeAuthModal, signInWithGoogle, signInWithWallet, signOut]
+    [status, user, modalOpen, intent, modalError, walletError, openAuthModal, closeAuthModal, signInWithGoogle, signInWithEmail, signInWithWallet, signOut, emailProviderEnabled]
   );
 
   return (

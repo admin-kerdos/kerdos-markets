@@ -20,7 +20,7 @@ export default defineConfig({
     env: {
       HOST: "127.0.0.1",
       NEXTAUTH_URL: "http://127.0.0.1:5173",
-      NEXTAUTH_SECRET: "playwright-secret",
+      NEXTAUTH_SECRET: "0123456789abcdef0123456789abcdef",
       GOOGLE_CLIENT_ID: "playwright-client",
       GOOGLE_CLIENT_SECRET: "playwright-secret",
       NEXT_PUBLIC_TEST_WALLETS:

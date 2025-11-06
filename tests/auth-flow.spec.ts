@@ -1,7 +1,7 @@
 import { test, expect } from "@playwright/test";
 import { encode } from "@auth/core/jwt";
 
-const AUTH_SECRET = process.env.NEXTAUTH_SECRET ?? "playwright-secret";
+const AUTH_SECRET = process.env.NEXTAUTH_SECRET ?? "0123456789abcdef0123456789abcdef";
 const TEST_WALLETS = {
   phantom: [
     187, 136, 100, 68, 201, 105, 27, 96, 250, 200, 15, 132, 0, 25, 20, 181, 253, 2, 73, 66, 61, 47, 255, 224, 58,
@@ -14,6 +14,39 @@ const TEST_WALLETS = {
     216, 113, 64, 194, 209, 139, 99, 43, 248, 95, 64, 117, 93, 169
   ]
 } as const;
+
+const EMAIL_TEST_ADDRESS = "tester@ejemplo.com";
+
+const TEST_AUTOMATION = {
+  wallet: {
+    phantom: { publicKey: "AutomationPhantomPublicKey" },
+    solflare: { publicKey: "AutomationSolflarePublicKey" }
+  }
+} as const;
+
+type PrimeOptions = {
+  emailEnabled?: boolean;
+  wallets?: Partial<typeof TEST_WALLETS> | null;
+};
+
+async function primeTestGlobals(page, options: PrimeOptions = {}): Promise<void> {
+  const { emailEnabled = true, wallets = TEST_WALLETS } = options;
+  await page.addInitScript(
+    ({ wallets, automation, emailEnabled: enabled }) => {
+      // @ts-expect-error instrumentation for Playwright tests
+      globalThis.__KERDOS_TEST_WALLETS__ = wallets;
+      // @ts-expect-error instrumentation for Playwright tests
+      globalThis.__KERDOS_AUTOMATION__ = automation;
+      // @ts-expect-error instrumentation for Playwright tests
+      globalThis.__KERDOS_EMAIL_PROVIDER_ENABLED__ = enabled;
+    },
+    {
+      wallets,
+      automation: TEST_AUTOMATION,
+      emailEnabled
+    }
+  );
+}
 
 async function setSessionCookie(page, payload) {
   const token = await encode({
@@ -40,29 +73,7 @@ test.describe("Autenticación", () => {
     });
   });
   test("abre y cierra el modal desde el header", async ({ page }) => {
-    await page.addInitScript(
-      ({
-        wallets,
-        automation
-      }: {
-        wallets: typeof TEST_WALLETS;
-        automation: { wallet: Partial<Record<keyof typeof TEST_WALLETS, { publicKey: string }> > };
-      }) => {
-      // @ts-expect-error instrumentation for Playwright tests
-        globalThis.__KERDOS_TEST_WALLETS__ = wallets;
-      // @ts-expect-error instrumentation for Playwright tests
-        globalThis.__KERDOS_AUTOMATION__ = automation;
-      },
-      {
-        wallets: TEST_WALLETS,
-        automation: {
-          wallet: {
-            phantom: { publicKey: "AutomationPhantomPublicKey" },
-            solflare: { publicKey: "AutomationSolflarePublicKey" }
-          }
-        }
-      }
-    );
+    await primeTestGlobals(page);
 
     await page.goto("/");
     await page.getByRole("button", { name: "Iniciar sesión" }).click();
@@ -79,29 +90,7 @@ test.describe("Autenticación", () => {
         body: "<html><body>Google OAuth Stub</body></html>"
       });
     });
-    await page.addInitScript(
-      ({
-        wallets,
-        automation
-      }: {
-        wallets: typeof TEST_WALLETS;
-        automation: { wallet: Partial<Record<keyof typeof TEST_WALLETS, { publicKey: string }> > };
-      }) => {
-        // @ts-expect-error instrumentation for Playwright tests
-        globalThis.__KERDOS_TEST_WALLETS__ = wallets;
-        // @ts-expect-error instrumentation for Playwright tests
-        globalThis.__KERDOS_AUTOMATION__ = automation;
-      },
-      {
-        wallets: TEST_WALLETS,
-        automation: {
-          wallet: {
-            phantom: { publicKey: "AutomationPhantomPublicKey" },
-            solflare: { publicKey: "AutomationSolflarePublicKey" }
-          }
-        }
-      }
-    );
+    await primeTestGlobals(page);
 
     await page.goto("/");
     await page.getByRole("button", { name: "Iniciar sesión" }).click();
@@ -118,6 +107,193 @@ test.describe("Autenticación", () => {
     expect(formData.get("callbackUrl")).toContain("/");
     expect(formData.has("csrfToken")).toBe(true);
     await page.waitForURL(/accounts\.google\.com/);
+  });
+
+  test("estructura del modal respeta el orden requerido", async ({ page }) => {
+    await primeTestGlobals(page, { emailEnabled: true });
+    await page.goto("/");
+    await page.getByRole("button", { name: "Iniciar sesión" }).click();
+
+    const dialog = page.getByRole("dialog", { name: "Inicia sesión" });
+    const sections = await dialog.locator("[data-auth-section]").evaluateAll((nodes) =>
+      nodes.map((node) => node.getAttribute("data-auth-section"))
+    );
+    expect(sections).toEqual(["google", "divider", "email", "wallets", "footer"]);
+
+    await expect(dialog.getByRole("separator")).toHaveCount(1);
+
+    const emailInput = dialog.getByLabel("Correo electrónico");
+    await expect(emailInput).toHaveAttribute("placeholder", "correo@ejemplo.com");
+    await expect(dialog.getByRole("button", { name: "Continuar con correo" })).toBeDisabled();
+
+    const walletGroup = dialog.getByRole("group", { name: "Conectar con una wallet" });
+    await expect(walletGroup.getByRole("button")).toHaveCount(2);
+    const phantomImgSrc = await walletGroup
+      .getByRole("button", { name: "Conectar con Phantom" })
+      .locator("img")
+      .first()
+      .getAttribute("src");
+    expect(phantomImgSrc ?? "").toContain("/markets/phantom_logo.png");
+
+    const solflareImgSrc = await walletGroup
+      .getByRole("button", { name: "Conectar con Solflare" })
+      .locator("img")
+      .first()
+      .getAttribute("src");
+    expect(solflareImgSrc ?? "").toContain("/markets/solflare_logo.png");
+
+    const termsLink = dialog.getByRole("link", { name: "Términos" });
+    const privacyLink = dialog.getByRole("link", { name: "Privacidad" });
+    await expect(termsLink).toHaveAttribute("href", "/terminos");
+    await expect(privacyLink).toHaveAttribute("href", "/privacidad");
+  });
+
+  test("no muestra textos informativos eliminados", async ({ page }) => {
+    await primeTestGlobals(page);
+    await page.goto("/");
+    await page.getByRole("button", { name: "Iniciar sesión" }).click();
+
+    const dialog = page.getByRole("dialog", { name: "Inicia sesión" });
+    await expect(dialog.getByText("Protegido con HTTPS", { exact: false })).toHaveCount(0);
+    await expect(dialog.getByText("Firmar con wallet", { exact: false })).toHaveCount(0);
+  });
+
+  test("Continuar con correo envía el formulario con el email", async ({ page }) => {
+    await primeTestGlobals(page, { emailEnabled: true });
+    await page.route("**/api/auth/signin/email", async (route) => {
+      await route.fulfill({ status: 200, contentType: "text/plain", body: "ok" });
+    });
+
+    await page.goto("/");
+    await page.getByRole("button", { name: "Iniciar sesión" }).click();
+    await page.getByLabel("Correo electrónico").fill(EMAIL_TEST_ADDRESS);
+
+    const [request] = await Promise.all([
+      page.waitForRequest((request) => request.url().includes("/api/auth/signin/email")),
+      page.getByRole("button", { name: "Continuar con correo" }).click()
+    ]);
+
+    expect(request.method()).toBe("POST");
+    const body = request.postData() ?? "";
+    const formData = new URLSearchParams(body);
+    expect(formData.get("email")).toBe(EMAIL_TEST_ADDRESS);
+    expect(formData.has("csrfToken")).toBe(true);
+    expect(formData.has("callbackUrl")).toBe(true);
+  });
+
+  test("cuando el proveedor de correo no está habilitado muestra un mensaje informativo", async ({ page }) => {
+    await primeTestGlobals(page, { emailEnabled: false });
+    await page.route("**/api/auth/signin/email", () => {
+      throw new Error("La ruta de correo no debería invocarse cuando no está habilitada");
+    });
+
+    await page.goto("/");
+    await page.getByRole("button", { name: "Iniciar sesión" }).click();
+    const dialog = page.getByRole("dialog", { name: "Inicia sesión" });
+
+    await expect(dialog.getByRole("button", { name: "Continuar con correo" })).toBeDisabled();
+    await dialog.getByLabel("Correo electrónico").fill(EMAIL_TEST_ADDRESS);
+    await expect(dialog.getByRole("button", { name: "Continuar con correo" })).toBeEnabled();
+    const toastLocator = dialog.locator("[data-auth-toast]");
+    await dialog.getByRole("button", { name: "Continuar con correo" }).click();
+    await toastLocator.waitFor({ state: "visible" });
+    await expect(toastLocator).toContainText("Aún no habilitamos el acceso con correo en esta versión.");
+    await page.waitForTimeout(3400);
+    await expect(toastLocator).toHaveCount(0);
+  });
+
+  test("el botón Continuar se habilita con correo válido y Enter envía el formulario", async ({ page }) => {
+    await primeTestGlobals(page, { emailEnabled: true });
+    await page.goto("/");
+    await page.getByRole("button", { name: "Iniciar sesión" }).click();
+    const dialog = page.getByRole("dialog", { name: "Inicia sesión" });
+    const emailInput = dialog.getByLabel("Correo electrónico");
+    const submitButton = dialog.getByRole("button", { name: "Continuar con correo" });
+
+    await expect(submitButton).toBeDisabled();
+    await emailInput.type("correo@invalido");
+    await expect(submitButton).toBeDisabled();
+    await emailInput.fill(EMAIL_TEST_ADDRESS);
+    await expect(submitButton).toBeEnabled();
+
+    await page.route("**/api/auth/signin/email", async (route) => {
+      await route.fulfill({ status: 200, contentType: "text/plain", body: "ok" });
+    });
+
+    const requestPromise = page.waitForRequest((request) => request.url().includes("/api/auth/signin/email"));
+    await emailInput.press("Enter");
+    const request = await requestPromise;
+    expect(request.method()).toBe("POST");
+  });
+
+  test("en móviles el modal no desborda y mantiene iconos alineados", async ({ page }) => {
+    await primeTestGlobals(page, { emailEnabled: true });
+    await page.setViewportSize({ width: 360, height: 760 });
+    await page.goto("/");
+    await page.getByRole("button", { name: "Iniciar sesión" }).click();
+
+    const dialog = page.getByRole("dialog", { name: "Inicia sesión" });
+    const walletGroup = dialog.getByRole("group", { name: "Conectar con una wallet" });
+    await expect(walletGroup.getByRole("button")).toHaveCount(2);
+
+    const [phantomBox, solflareBox] = await Promise.all([
+      walletGroup.getByRole("button", { name: "Conectar con Phantom" }).boundingBox(),
+      walletGroup.getByRole("button", { name: "Conectar con Solflare" }).boundingBox()
+    ]);
+
+    expect(phantomBox).not.toBeNull();
+    expect(solflareBox).not.toBeNull();
+    if (phantomBox && solflareBox) {
+      expect(Math.abs(phantomBox.y - solflareBox.y)).toBeLessThan(2);
+      expect(phantomBox.width).toBeLessThanOrEqual(52);
+      expect(solflareBox.width).toBeLessThanOrEqual(52);
+    }
+
+    const emailRow = dialog.locator("[data-auth-section='email']");
+    const emailInput = dialog.getByLabel("Correo electrónico");
+    const submitButton = dialog.getByRole("button", { name: "Continuar con correo" });
+
+    const [rowBox, inputBox, buttonBox] = await Promise.all([
+      emailRow.boundingBox(),
+      emailInput.boundingBox(),
+      submitButton.boundingBox()
+    ]);
+
+    expect(rowBox).not.toBeNull();
+    expect(inputBox).not.toBeNull();
+    expect(buttonBox).not.toBeNull();
+    if (rowBox && inputBox && buttonBox) {
+      expect(Math.abs(inputBox.y - buttonBox.y)).toBeLessThanOrEqual(2);
+      expect(buttonBox.x + buttonBox.width).toBeLessThanOrEqual(rowBox.x + rowBox.width + 1);
+    }
+
+    const hasHorizontalOverflow = await page.evaluate(
+      () => document.documentElement.scrollWidth > window.innerWidth + 1
+    );
+    expect(hasHorizontalOverflow).toBeFalsy();
+  });
+
+  test("los iconos de wallet exponen etiquetas y muestran nota temporal cuando faltan", async ({ page }) => {
+    await primeTestGlobals(page, { wallets: null });
+    await page.goto("/");
+    await page.getByRole("button", { name: "Iniciar sesión" }).click();
+
+    const dialog = page.getByRole("dialog", { name: "Inicia sesión" });
+    const walletGroup = dialog.getByRole("group", { name: "Conectar con una wallet" });
+    const phantomButton = walletGroup.getByRole("button", { name: "Conectar con Phantom" });
+    const solflareButton = walletGroup.getByRole("button", { name: "Conectar con Solflare" });
+
+    await expect(phantomButton).toBeVisible();
+    await expect(solflareButton).toBeVisible();
+
+    await expect(dialog.getByText("Wallet no detectada", { exact: false })).toHaveCount(0);
+    await phantomButton.click();
+
+    const feedback = dialog.getByText("Wallet no detectada", { exact: false });
+    await expect(feedback).toBeVisible();
+
+    await page.waitForTimeout(4200);
+    await expect(feedback).not.toBeVisible();
   });
 
   test("la cabecera muestra el menú después de una sesión activa", async ({ page }) => {
@@ -196,24 +372,8 @@ test.describe("Autenticación", () => {
       });
     });
 
+    await primeTestGlobals(page);
     await page.goto("/");
-    await page.evaluate(
-      ({ wallets, automation }: { wallets: typeof TEST_WALLETS; automation: unknown }) => {
-        // @ts-expect-error instrumentation for Playwright tests
-        globalThis.__KERDOS_TEST_WALLETS__ = wallets;
-        // @ts-expect-error instrumentation for Playwright tests
-        globalThis.__KERDOS_AUTOMATION__ = automation;
-      },
-      {
-        wallets: TEST_WALLETS,
-        automation: {
-          wallet: {
-            phantom: { publicKey: "AutomationPhantomPublicKey" },
-            solflare: { publicKey: "AutomationSolflarePublicKey" }
-          }
-        }
-      }
-    );
     await page.getByRole("button", { name: "Iniciar sesión" }).click();
     const verifyRequest = page.waitForRequest((request) => request.url().includes("/api/siws/verify"));
     await page.getByRole("button", { name: "Conectar con Phantom" }).click();
@@ -262,24 +422,8 @@ test.describe("Autenticación", () => {
         body: JSON.stringify({ ok: true })
       });
     });
+    await primeTestGlobals(page);
     await page.goto("/");
-    await page.evaluate(
-      ({ wallets, automation }: { wallets: typeof TEST_WALLETS; automation: unknown }) => {
-        // @ts-expect-error instrumentation for Playwright tests
-        globalThis.__KERDOS_TEST_WALLETS__ = wallets;
-        // @ts-expect-error instrumentation for Playwright tests
-        globalThis.__KERDOS_AUTOMATION__ = automation;
-      },
-      {
-        wallets: TEST_WALLETS,
-        automation: {
-          wallet: {
-            phantom: { publicKey: "AutomationPhantomPublicKey" },
-            solflare: { publicKey: "AutomationSolflarePublicKey" }
-          }
-        }
-      }
-    );
     await page.getByRole("button", { name: "Registrarse" }).click();
     const verifyRequest = page.waitForRequest((request) => request.url().includes("/api/siws/verify"));
     await page.getByRole("button", { name: "Conectar con Solflare" }).click();

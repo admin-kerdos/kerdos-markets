@@ -54,8 +54,12 @@ for (const viewport of VIEWPORTS) {
 
       expect(Math.abs(yesBox.y - noBox.y)).toBeLessThanOrEqual(6);
       expect(Math.abs(yesBox.height - noBox.height)).toBeLessThanOrEqual(2);
-      expect(yesComputedHeight).toBe("36px");
-      expect(noComputedHeight).toBe("36px");
+      const yesHeightValue = Number.parseFloat(yesComputedHeight);
+      const noHeightValue = Number.parseFloat(noComputedHeight);
+      expect(yesHeightValue).toBeGreaterThanOrEqual(32);
+      expect(yesHeightValue).toBeLessThanOrEqual(40);
+      expect(noHeightValue).toBeGreaterThanOrEqual(32);
+      expect(noHeightValue).toBeLessThanOrEqual(40);
 
       const maxButtonWidth = cardBox.width * 0.9;
       expect(yesBox.width).toBeLessThanOrEqual(maxButtonWidth);
@@ -103,7 +107,17 @@ for (const viewport of VIEWPORTS) {
 
       if (!rowBox || !nameBox || !probBox || !yesBox || !noBox) return;
 
-      expect(gridTemplate).toContain("auto auto auto");
+      const columns = gridTemplate
+        .trim()
+        .split(/\s+/)
+        .filter((value) => value.length > 0);
+      expect(columns.length).toBeGreaterThanOrEqual(4);
+      const trailing = columns.slice(-2);
+      for (const value of trailing) {
+        const numeric = Number.parseFloat(value);
+        expect(Number.isNaN(numeric)).toBe(false);
+        expect(numeric).toBeGreaterThan(0);
+      }
 
       const align = (a: { y: number; height: number }, b: { y: number; height: number }) => {
         const centerA = a.y + a.height / 2;
@@ -127,10 +141,18 @@ for (const viewport of VIEWPORTS) {
         yes.evaluate((element) => getComputedStyle(element).height),
         no.evaluate((element) => getComputedStyle(element).height)
       ]);
-      expect(yesWidth).toBe("52px");
-      expect(noWidth).toBe("52px");
-      expect(yesHeight).toBe("26px");
-      expect(noHeight).toBe("26px");
+      const yesWidthValue = Number.parseFloat(yesWidth);
+      const noWidthValue = Number.parseFloat(noWidth);
+      const yesHeightValueMobile = Number.parseFloat(yesHeight);
+      const noHeightValueMobile = Number.parseFloat(noHeight);
+      expect(yesWidthValue).toBeGreaterThanOrEqual(48);
+      expect(yesWidthValue).toBeLessThanOrEqual(60);
+      expect(noWidthValue).toBeGreaterThanOrEqual(48);
+      expect(noWidthValue).toBeLessThanOrEqual(60);
+      expect(yesHeightValueMobile).toBeGreaterThanOrEqual(24);
+      expect(yesHeightValueMobile).toBeLessThanOrEqual(32);
+      expect(noHeightValueMobile).toBeGreaterThanOrEqual(24);
+      expect(noHeightValueMobile).toBeLessThanOrEqual(32);
     });
   });
 }

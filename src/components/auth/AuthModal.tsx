@@ -1,6 +1,8 @@
 "use client";
 
-import { useEffect } from "react";
+import Image from "next/image";
+import Link from "next/link";
+import { FormEvent, useEffect, useState } from "react";
 import { X } from "lucide-react";
 import styles from "@/styles/components/AuthModal.module.css";
 import { useAuth } from "./AuthProvider";
@@ -48,7 +50,14 @@ const walletIcons: Record<WalletOption, JSX.Element> = {
 };
 
 export default function AuthModal() {
-  const { state, closeAuthModal, signInWithGoogle, signInWithWallet, modalError } = useAuth();
+  const { state, closeAuthModal, signInWithGoogle, signInWithEmail, signInWithWallet, modalError, walletError } = useAuth();
+
+  const [emailValue, setEmailValue] = useState("");
+  const [isEmailSubmitting, setIsEmailSubmitting] = useState(false);
+  const [isEmailValid, setIsEmailValid] = useState(false);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [phantomImageError, setPhantomImageError] = useState(false);
+  const [solflareImageError, setSolflareImageError] = useState(false);
 
   useEffect(() => {
     if (!state.modalOpen) return;
@@ -66,13 +75,42 @@ export default function AuthModal() {
     };
   }, [closeAuthModal, state.modalOpen]);
 
+  useEffect(() => {
+    if (!state.modalOpen) {
+      setEmailValue("");
+      setIsEmailValid(false);
+      setToastMessage(null);
+      setIsEmailSubmitting(false);
+    }
+  }, [state.modalOpen]);
+
+  useEffect(() => {
+    if (!toastMessage) return;
+    const timeout = window.setTimeout(() => {
+      setToastMessage(null);
+    }, 3200);
+    return () => window.clearTimeout(timeout);
+  }, [toastMessage]);
+
   if (!state.modalOpen) return null;
 
   const title = state.intent === "signup" ? "Crea tu cuenta" : "Inicia sesión";
-  const subtitle =
-    state.intent === "signup"
-      ? "Accede con tu cuenta de Google o conéctate usando tu wallet de Solana."
-      : "Elige un proveedor para continuar con tu cuenta.";
+  const handleEmailSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (isEmailSubmitting) return;
+    setIsEmailSubmitting(true);
+    try {
+      const result = await signInWithEmail(emailValue.trim());
+      if (result.ok) {
+        setEmailValue("");
+        setIsEmailValid(false);
+      } else if (result.message) {
+        setToastMessage(result.message);
+      }
+    } finally {
+      setIsEmailSubmitting(false);
+    }
+  };
 
   return (
     <div className={styles.backdrop} role="presentation" onClick={closeAuthModal}>
@@ -86,39 +124,138 @@ export default function AuthModal() {
         <button type="button" className={styles.closeButton} onClick={closeAuthModal} aria-label="Cerrar modal">
           <X size={18} />
         </button>
+        {toastMessage ? (
+          <div className={styles.toast} role="status" aria-live="assertive" data-auth-toast>
+            {toastMessage}
+          </div>
+        ) : null}
         <div className={styles.header}>
           <h2 id="auth-modal-heading" className={styles.title}>
             {title}
           </h2>
-          <p className={styles.subtitle}>{subtitle}</p>
         </div>
-        <div className={styles.buttonList}>
-          <button type="button" className={styles.providerButton} onClick={signInWithGoogle}>
+        <div className={styles.actions}>
+          <button
+            type="button"
+            className={styles.providerButton}
+            onClick={signInWithGoogle}
+            data-auth-section="google"
+          >
             <span className={styles.providerIcon}>{GOOGLE_ICON}</span>
             Continuar con Google
           </button>
-          <button
-            type="button"
-            className={styles.providerButton}
-            onClick={() => signInWithWallet("phantom")}
+          <div className={styles.divider} role="separator" aria-orientation="horizontal" data-auth-section="divider">
+            <span className={styles.dividerLine} aria-hidden="true" />
+            <span className={styles.dividerLabel} aria-hidden="true">
+              o
+            </span>
+            <span className={styles.dividerLine} aria-hidden="true" />
+          </div>
+          <form className={styles.emailRow} onSubmit={handleEmailSubmit} noValidate data-auth-section="email">
+            <label htmlFor="auth-email-input" className={styles.srOnly}>
+              Correo electrónico
+            </label>
+            <input
+              id="auth-email-input"
+              name="email"
+              type="email"
+              inputMode="email"
+              autoComplete="email"
+              placeholder="correo@ejemplo.com"
+              aria-label="Correo electrónico"
+              value={emailValue}
+              onChange={(event) => {
+                setEmailValue(event.target.value);
+                const nextValue = event.target.value.trim();
+                const pattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                setIsEmailValid(pattern.test(nextValue));
+              }}
+              className={styles.emailInput}
+            />
+            <button
+              type="submit"
+              className={styles.emailButton}
+              disabled={!isEmailValid || isEmailSubmitting}
+              aria-label="Continuar con correo"
+            >
+              Continuar
+            </button>
+          </form>
+          <div
+            className={styles.walletRow}
+            role="group"
+            aria-label="Conectar con una wallet"
+            data-auth-section="wallets"
           >
-            <span className={styles.providerIcon}>{walletIcons.phantom}</span>
-            Conectar con Phantom
-          </button>
-          <button
-            type="button"
-            className={styles.providerButton}
-            onClick={() => signInWithWallet("solflare")}
-          >
-            <span className={styles.providerIcon}>{walletIcons.solflare}</span>
-            Conectar con Solflare
-          </button>
+            <button
+              type="button"
+              className={styles.walletButton}
+              onClick={() => signInWithWallet("phantom")}
+              aria-label="Conectar con Phantom"
+              title="Conectar con Phantom"
+            >
+              <span className={styles.walletIcon}>
+                {phantomImageError ? (
+                  walletIcons.phantom
+                ) : (
+                  <Image
+                    src="/markets/phantom_logo.png"
+                    alt=""
+                    width={24}
+                    height={24}
+                    unoptimized
+                    className={styles.walletImage}
+                    onError={() => setPhantomImageError(true)}
+                  />
+                )}
+              </span>
+            </button>
+            <button
+              type="button"
+              className={styles.walletButton}
+              onClick={() => signInWithWallet("solflare")}
+              aria-label="Conectar con Solflare"
+              title="Conectar con Solflare"
+            >
+              <span className={styles.walletIcon}>
+                {solflareImageError ? (
+                  walletIcons.solflare
+                ) : (
+                  <Image
+                    src="/markets/solflare_logo.png"
+                    alt=""
+                    width={24}
+                    height={24}
+                    unoptimized
+                    className={styles.walletImage}
+                    onError={() => setSolflareImageError(true)}
+                  />
+                )}
+              </span>
+            </button>
+          </div>
+          {walletError ? (
+            <p className={styles.inlineFeedback} role="status">
+              {walletError}
+            </p>
+          ) : null}
+          <div className={styles.footerLinks} data-auth-section="footer">
+            <Link href="/terminos" className={styles.footerLink}>
+              Términos
+            </Link>
+            <span className={styles.footerSeparator} aria-hidden="true">
+              ·
+            </span>
+            <Link href="/privacidad" className={styles.footerLink}>
+              Privacidad
+            </Link>
+          </div>
         </div>
-        {modalError && <p className={styles.alert}>{modalError}</p>}
-        <div className={styles.footer}>
-          <span>Protegido con HTTPS. Nunca compartimos tus datos sin autorización.</span>
-          <span>Firmar con wallet no ejecuta transacciones; solo verifica que controlas la cuenta.</span>
-        </div>
+        {modalError ? (
+          <p className={styles.globalFeedback} role="status">
+            {modalError}
+          </p>
+        ) : null}
       </div>
     </div>
   );
