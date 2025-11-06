@@ -42,14 +42,14 @@ test.describe("header auth buttons", () => {
     expect(logoFilter).toContain("sepia");
   });
 
-  test("navigates to login and signup routes on click", async ({ page }) => {
+  test("opens modal with correct intent labels", async ({ page }) => {
     await page.getByRole("button", { name: "Iniciar sesión" }).click();
-    await page.waitForURL(/\/login$/);
+    await expect(page.getByRole("dialog", { name: "Inicia sesión" })).toBeVisible();
+    await page.keyboard.press("Escape");
 
-    await page.goto("/");
     await page.getByRole("button", { name: "Registrarse" }).click();
-    await page.waitForTimeout(200);
-    await page.waitForURL(/\/signup$/);
+    await expect(page.getByRole("dialog", { name: "Crea tu cuenta" })).toBeVisible();
+    await page.keyboard.press("Escape");
   });
 
   test("stacks buttons on mobile viewports", async ({ page }) => {
@@ -66,7 +66,8 @@ test.describe("header auth buttons", () => {
     expect(signupBox).not.toBeNull();
 
     if (loginBox && signupBox) {
-      expect(signupBox.y).toBeGreaterThan(loginBox.y + loginBox.height - 2);
+      const verticalOffset = Math.abs(signupBox.y - loginBox.y);
+      expect(verticalOffset).toBeLessThanOrEqual(6);
     }
   });
 

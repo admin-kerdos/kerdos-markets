@@ -1,0 +1,140 @@
+@layer components {
+  .backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(5, 7, 31, 0.72);
+    backdrop-filter: blur(6px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: clamp(var(--space-4), 8vw, var(--space-6));
+    z-index: 10000;
+  }
+
+  .modal {
+    width: min(420px, 100%);
+    border-radius: 18px;
+    background: var(--color-surface-elevated);
+    border: 1px solid color-mix(in srgb, var(--color-border) 65%, transparent);
+    box-shadow: 0 26px 68px rgba(5, 9, 26, 0.5);
+    color: var(--color-text);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    padding: clamp(var(--space-4), 5vw, var(--space-5));
+  }
+
+  .header {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+
+  .title {
+    margin: 0;
+    font-size: clamp(1.15rem, 4vw, 1.35rem);
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+
+  .subtitle {
+    margin: 0;
+    color: var(--color-text-muted);
+    font-size: 0.92rem;
+    line-height: 1.45;
+  }
+
+  .buttonList {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+
+  .providerButton {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+    width: 100%;
+    border-radius: 14px;
+    padding: 0.75rem 1rem;
+    font-size: 0.95rem;
+    font-weight: 600;
+    border: 1px solid color-mix(in srgb, var(--color-border) 65%, transparent);
+    background: var(--color-surface);
+    color: var(--color-text);
+    cursor: pointer;
+    transition:
+      transform var(--transition-short),
+      box-shadow var(--transition-base),
+      border-color var(--transition-base),
+      background var(--transition-base);
+  }
+
+  .providerButton:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-soft);
+    border-color: var(--color-brand);
+  }
+
+  .providerButton:focus-visible {
+    outline: none;
+    box-shadow:
+      0 0 0 2px var(--color-bg),
+      0 0 0 4px var(--color-focus);
+  }
+
+  .providerIcon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+  }
+
+  .alert {
+    margin: 0;
+    font-size: 0.85rem;
+    color: var(--color-danger);
+  }
+
+  .footer {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    font-size: 0.8rem;
+    color: var(--color-text-subtle);
+  }
+
+  .closeButton {
+    position: absolute;
+    top: clamp(8px, 2vw, 16px);
+    right: clamp(8px, 2vw, 16px);
+    border: none;
+    background: transparent;
+    color: var(--color-text-subtle);
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 999px;
+  }
+
+  .closeButton:hover {
+    color: var(--color-text);
+  }
+
+  @media (max-width: 599px) {
+    .modal {
+      padding: var(--space-4);
+      border-radius: 16px;
+    }
+
+    .buttonList {
+      gap: var(--space-2);
+    }
+
+    .providerButton {
+      padding: 0.7rem 0.9rem;
+      font-size: 0.9rem;
+    }
+  }
+}

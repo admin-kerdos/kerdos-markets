@@ -3,6 +3,8 @@ import { getMarkets } from "@/lib/markets";
 import AppHeader from "@/components/layout/AppHeader";
 import { HeroCarouselProvider } from "@/components/home/HeroCarouselContext";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
+import WalletProviders from "@/components/auth/WalletProviders";
+import { AuthProvider } from "@/components/auth/AuthProvider";
 
 export const metadata = {
   title: "Kerdos — Demo Web",
@@ -32,10 +34,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body>
         <ThemeProvider>
-          <HeroCarouselProvider markets={markets}>
-            <AppHeader markets={markets} />
-            <div className="app-content">{children}</div>
-          </HeroCarouselProvider>
+          <WalletProviders>
+            <AuthProvider>
+              <HeroCarouselProvider markets={markets}>
+                <AppHeader markets={markets} />
+                <div className="app-content">{children}</div>
+              </HeroCarouselProvider>
+            </AuthProvider>
+          </WalletProviders>
         </ThemeProvider>
       </body>
     </html>

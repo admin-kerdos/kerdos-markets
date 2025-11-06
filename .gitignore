@@ -8,6 +8,7 @@
 .next/
 app/.next/
 dist/
+dist-tests/
 build/
 out/
 app/out/

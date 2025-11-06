@@ -1,26 +1,27 @@
 "use client";
 
 import { useCallback, useMemo } from "react";
-import { useRouter } from "next/navigation";
 import HeroCarousel from "@/components/home/HeroCarousel";
 import ThemeToggle from "@/components/ui/ThemeToggle";
 import { getMarkets } from "@/lib/markets";
 import headerStyles from "@/styles/components/HomeHeader.module.css";
 import styles from "./page.module.css";
+import { useAuth } from "@/components/auth/AuthProvider";
+import UserAccountMenu from "@/components/auth/UserAccountMenu";
 
 const marketsData = getMarkets();
 
 export default function Page() {
-  const router = useRouter();
+  const { state, openAuthModal, signOut } = useAuth();
   const markets = useMemo(() => marketsData, []);
 
   const handleLogin = useCallback(() => {
-    router.push("/login");
-  }, [router]);
+    openAuthModal("login");
+  }, [openAuthModal]);
 
   const handleSignup = useCallback(() => {
-    router.push("/signup");
-  }, [router]);
+    openAuthModal("signup");
+  }, [openAuthModal]);
 
   const brand = (
     <div className={headerStyles.brand}>
@@ -32,22 +33,26 @@ export default function Page() {
   const actions = (
     <div className={headerStyles.actions}>
       <ThemeToggle />
-      <div className={headerStyles.authButtons}>
-        <button
-          type="button"
-          className={`${headerStyles.authButton} ${headerStyles.authButtonOutline}`}
-          onClick={handleLogin}
-        >
-          Iniciar sesión
-        </button>
-        <button
-          type="button"
-          className={`${headerStyles.authButton} ${headerStyles.authButtonFilled}`}
-          onClick={handleSignup}
-        >
-          Registrarse
-        </button>
-      </div>
+      {state.status === "authenticated" && state.user ? (
+        <UserAccountMenu onSignOut={signOut} name={state.user.name ?? "Usuario"} image={state.user.image ?? undefined} />
+      ) : (
+        <div className={headerStyles.authButtons}>
+          <button
+            type="button"
+            className={`${headerStyles.authButton} ${headerStyles.authButtonOutline}`}
+            onClick={handleLogin}
+          >
+            Iniciar sesión
+          </button>
+          <button
+            type="button"
+            className={`${headerStyles.authButton} ${headerStyles.authButtonFilled}`}
+            onClick={handleSignup}
+          >
+            Registrarse
+          </button>
+        </div>
+      )}
     </div>
   );
 
