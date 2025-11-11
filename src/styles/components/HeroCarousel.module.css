@@ -31,7 +31,7 @@
     flex-direction: column;
     gap: clamp(var(--space-1), 1vw, var(--space-2));
     width: 100%;
-    margin-top: clamp(var(--space-4), 3vw, var(--space-6));
+    margin-top: clamp(var(--space-2), 1.5vw, var(--space-3));
     position: relative;
     z-index: 250;
     pointer-events: auto;
@@ -74,7 +74,7 @@
     padding-bottom: 0 !important;
     margin-bottom: 0 !important;
     overflow-x: auto;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     width: 100%;
     border-bottom: 0 !important;
     transform: translateX(-0.897rem);

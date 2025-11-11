@@ -2,10 +2,10 @@ export type ThemeName = "light" | "dark";
 
 export const themeTokens: Record<ThemeName, Record<string, string>> = {
   light: {
-    "--color-bg": "#f6f7fb",
+    "--color-bg": "#ffffff",
     "--color-surface": "#ffffff",
-    "--color-surface-elevated": "#f1f4ff",
-    "--color-surface-muted": "#e4e9f8",
+    "--color-surface-elevated": "#ffffff",
+    "--color-surface-muted": "#ffffff",
     "--color-overlay": "rgba(244, 246, 255, 0.9)",
     "--color-border": "rgba(120, 134, 186, 0.3)",
     "--color-border-strong": "rgba(71, 85, 123, 0.55)",
