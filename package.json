@@ -1,0 +1,46 @@
+{
+  "name": "@kerdos/web",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "next dev -p 5173",
+    "build": "next build",
+    "start": "next start -p 5173",
+    "test": "npm run test:unit",
+    "test:unit": "node -e \"const fs=require('fs');try{fs.rmSync('dist-tests',{recursive:true,force:true});}catch(_){}\" && tsc --project tsconfig.test.json && node --test dist-tests/tests/unit/**/*.js",
+    "test:e2e": "playwright test",
+    "seed:local": "node --loader ts-node/esm --no-warnings scripts/seed-local.ts",
+    "seed:markets": "node --loader ts-node/esm --no-warnings scripts/seed-markets.ts"
+  },
+  "dependencies": {
+    "@auth/core": "^0.34.3",
+    "@auth/nextjs": "0.0.0-380f8d56",
+    "@coral-xyz/anchor": "0.31.1",
+    "@kerdos/sdk": "file:packages/kerdos-sdk",
+    "@solana/wallet-adapter-react": "0.15.39",
+    "@solana/wallet-adapter-react-ui": "0.9.39",
+    "@solana/wallet-adapter-wallets": "0.19.37",
+    "@solana/web3.js": "1.98.4",
+    "bn.js": "5.2.1",
+    "buffer": "6.0.3",
+    "class-variance-authority": "0.7.1",
+    "framer-motion": "12.23.24",
+    "lucide-react": "0.548.0",
+    "next": "14.2.10",
+    "react": "18.2.0",
+    "react-aria-components": "1.13.0",
+    "react-dom": "18.2.0",
+    "recharts": "2.12.7"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.48.2",
+    "@types/bn.js": "5.1.4",
+    "@types/node": "20.16.11",
+    "@types/react": "18.3.11",
+    "@types/react-dom": "18.3.0",
+    "dotenv": "16.4.5",
+    "typescript": "5.9.3",
+    "vitest": "^4.0.12"
+  }
+}

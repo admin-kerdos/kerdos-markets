@@ -1,0 +1,817 @@
+@layer components {
+  .page {
+    min-height: 100dvh;
+    background: var(--color-bg);
+    color: var(--color-text);
+    overflow-x: hidden;
+  }
+
+  .shell {
+    padding-block-start: 0;
+    padding-block-end: clamp(var(--space-6), 8vw, var(--space-9));
+  }
+
+  .layout {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    box-sizing: border-box;
+    width: min(100%, 1450px);
+    margin-inline: auto;
+    padding-inline: clamp(16px, 3vw, 32px);
+  }
+
+  @media (max-width: 1280px) and (min-width: 768px) {
+    .layout {
+      width: min(100%, 1200px);
+      padding-inline: clamp(12px, 2.5vw, 24px);
+    }
+  }
+
+  .detailContent {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    box-sizing: border-box;
+    width: 100%;
+  }
+
+  .detailContent > * + * {
+    margin-block-start: clamp(var(--space-5), 5vw, var(--space-8));
+  }
+
+  .detailContent > .chartSection {
+    margin-block-start: clamp(var(--space-4), 5vw, var(--space-6));
+  }
+
+  .topBar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+  }
+
+  .backLink {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    text-decoration: none;
+    color: var(--color-text-subtle);
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    background: transparent;
+    border: none;
+  }
+
+  .slugBadge {
+    font-size: var(--font-size-xs);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 0;
+    color: var(--color-text-subtle);
+  }
+
+.heroCard {
+  display: grid;
+  grid-template-columns: minmax(0, auto) 1fr;
+  gap: clamp(var(--space-4), 4vw, var(--space-6));
+  padding-block-start: clamp(var(--space-4), 4vw, var(--space-6));
+  padding-block-end: 0;
+  padding-inline: 0;
+  align-items: center;
+  background: transparent;
+  border: none;
+  margin: 0;
+}
+
+.heroIdentity {
+  display: flex;
+  align-items: center;
+  gap: clamp(var(--space-4), 3vw, var(--space-5));
+  width: auto;
+  max-width: 100%;
+  position: sticky;
+  top: var(--hero-sticky-top, clamp(var(--space-5), 5vw, var(--space-7)));
+  z-index: 1;
+  transform-origin: top left;
+  will-change: transform;
+  transition: transform 160ms ease-out;
+  justify-self: start;
+  pointer-events: none;
+}
+
+  .cover {
+    width: clamp(84px, 11vw, 140px);
+    height: clamp(84px, 11vw, 140px);
+    object-fit: cover;
+    border-radius: 14px;
+    border: 1px solid color-mix(in srgb, var(--color-border) 55%, transparent);
+    background: var(--color-surface);
+    box-shadow: 0 12px 24px rgba(5, 9, 26, 0.12);
+    flex-shrink: 0;
+  }
+
+  .identityBody {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+  }
+
+  .identityBody h1 {
+    margin: 0;
+    font-size: clamp(22px, 2vw, 36px);
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+  }
+
+  .summary {
+    margin: 0;
+    color: var(--color-text-muted);
+    font-size: var(--font-size-base);
+    line-height: var(--line-height-regular);
+  }
+
+  .metaLabel {
+    font-size: var(--font-size-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--color-text-subtle);
+    margin: 0 0 4px;
+  }
+
+  .metrics {
+    display: none !important;
+  }
+
+  .metricValue {
+    font-size: clamp(var(--font-size-xl), 4vw, 48px);
+    font-weight: 700;
+    line-height: 1;
+    color: var(--color-text);
+  }
+
+  .chartSection {
+    width: 100%;
+  }
+
+.chartCard {
+  border: none;
+  background: transparent;
+  padding-block-start: 0;
+  padding-block-end: clamp(var(--space-4), 3vw, var(--space-5));
+  padding-inline: 0;
+}
+
+  .chartCard h2 {
+    margin: 0 0 var(--space-3);
+    font-size: var(--font-size-lg);
+    font-weight: 600;
+  }
+
+  .chartCard :global(.chart-wrapper) {
+    width: 100%;
+    min-height: 320px;
+  }
+
+.rulesPanel {
+  border: none;
+  background: transparent;
+  padding-block: clamp(var(--space-4), 3vw, var(--space-5));
+  padding-inline: 0;
+}
+
+  .rulesPanel h2 {
+    margin: 0 0 var(--space-3);
+    font-size: var(--font-size-lg);
+  }
+
+  .rulesList {
+    margin: 0;
+    padding-left: var(--space-4);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    color: var(--color-text-muted);
+    line-height: var(--line-height-regular);
+  }
+
+  .chartFallback {
+    width: 100%;
+    min-height: 280px;
+    background: transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-text-subtle);
+    font-size: var(--font-size-sm);
+  }
+
+.actionButtons {
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  gap: clamp(var(--space-3), 3vw, var(--space-4));
+  width: 100%;
+  padding-inline: clamp(var(--space-4), 3vw, var(--space-5));
+  margin-block-start: clamp(var(--space-3), 3vw, var(--space-4));
+}
+
+.multiOptionList {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(0.5rem, 1.6vw, 0.8rem);
+  width: 100%;
+  padding-inline: clamp(var(--space-4), 3vw, var(--space-5));
+  margin-block-start: clamp(var(--space-3), 3vw, var(--space-4));
+}
+
+.multiOptionRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto auto;
+  align-items: center;
+  column-gap: clamp(0.45rem, 1.4vw, 0.8rem);
+  min-width: 0;
+}
+
+.multiOptionName {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: clamp(18px, 2vw, 24px);
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.multiOptionProbability {
+  font-size: clamp(16px, 1.7vw, 20px);
+  font-weight: 600;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+  justify-self: end;
+}
+
+.multiOptionButton {
+  border: none;
+  border-radius: 14px;
+  padding: clamp(8px, 1.4vw, 12px) clamp(16px, 2.2vw, 24px);
+  min-width: clamp(92px, 18vw, 116px);
+  height: clamp(36px, 4.6vw, 44px);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: clamp(15px, 1.5vw, 18px);
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #ffffff;
+  cursor: pointer;
+  transition: background-color 160ms ease, transform 120ms ease, box-shadow 160ms ease;
+  white-space: nowrap;
+}
+
+.multiOptionButtonYes {
+  background-color: var(--color-success);
+}
+
+.multiOptionButtonYes:hover,
+.multiOptionButtonYes:focus-visible {
+  background-color: var(--color-success-strong);
+}
+
+.multiOptionButtonYes:active {
+  background-color: var(--color-success-active);
+}
+
+.multiOptionButtonNo {
+  background-color: var(--color-danger);
+}
+
+.multiOptionButtonNo:hover,
+.multiOptionButtonNo:focus-visible {
+  background-color: var(--color-danger-strong);
+}
+
+.multiOptionButtonNo:active {
+  background-color: var(--color-danger-active);
+}
+
+.multiOptionButton:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 16px rgba(15, 23, 42, 0.12);
+}
+
+.multiOptionButton:focus-visible {
+  outline: 3px solid rgba(255, 255, 255, 0.3);
+  outline-offset: 2px;
+}
+
+.actionButton {
+  flex: 1 1 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(8px, 2vw, 16px);
+  padding: clamp(10px, 1.6vw, 16px) clamp(20px, 4vw, 32px);
+  border: none;
+  border-radius: 18px;
+  color: #ffffff;
+  font-size: clamp(18px, 2vw, 24px);
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  background-color: transparent;
+  cursor: pointer;
+  transition: background-color 160ms ease, transform 120ms ease;
+  text-align: center;
+}
+
+  .actionButtonYes {
+    background-color: var(--color-success);
+  }
+
+  .actionButtonYes:hover,
+  .actionButtonYes:focus-visible {
+    background-color: var(--color-success-strong);
+  }
+
+  .actionButtonYes:active {
+    background-color: var(--color-success-active);
+  }
+
+  .actionButtonNo {
+    background-color: var(--color-danger);
+  }
+
+  .actionButtonNo:hover,
+  .actionButtonNo:focus-visible {
+    background-color: var(--color-danger-strong);
+  }
+
+  .actionButtonNo:active {
+    background-color: var(--color-danger-active);
+  }
+
+  .actionButton:focus-visible {
+    outline: 3px solid rgba(255, 255, 255, 0.3);
+    outline-offset: 2px;
+  }
+
+.actionLabel,
+.actionPrice {
+  display: inline-flex;
+  align-items: center;
+  line-height: 1;
+}
+
+.actionPrice {
+  font-size: clamp(16px, 1.8vw, 20px);
+  }
+
+  .tradeModalOverlay {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(7, 11, 29, 0.38);
+    backdrop-filter: blur(3px);
+    padding: clamp(var(--space-4), 5vw, var(--space-6));
+    z-index: 1000;
+    animation: fadeIn 160ms ease;
+  }
+
+  .tradeModal {
+    width: min(428px, 100%);
+    background: #ffffff;
+    color: #0f172a;
+    border-radius: 16px;
+    box-shadow: 0 18px 36px rgba(15, 23, 42, 0.14);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    max-height: calc(100vh - 2 * clamp(var(--space-4), 5vw, var(--space-6)));
+    overflow: hidden;
+    animation: scaleIn 160ms ease;
+  }
+
+  .tradeModalHeader {
+    padding: clamp(var(--space-4), 3.5vw, var(--space-5));
+    border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+  }
+
+  .tradeModalHeading {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+
+  .tradeModalMarketIdentity {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+  }
+
+  .tradeModalImageWrapper {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid rgba(15, 23, 42, 0.12);
+    flex-shrink: 0;
+  }
+
+  .tradeModalImage {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .tradeModalMarketBody {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .tradeModalMarketBody h2 {
+    margin: 0;
+    font-size: clamp(18px, 1.8vw, 22px);
+    line-height: 1.2;
+    color: #0f172a;
+  }
+
+  .tradeModalMarketLabel {
+    margin: 0;
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: rgba(15, 23, 42, 0.5);
+  }
+
+  .tradeModalActionLabel {
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: rgba(15, 23, 42, 0.72);
+  }
+
+  .tradeModalBody {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    padding: 0 clamp(var(--space-4), 3.5vw, var(--space-5));
+  }
+
+  .tradeModalIntentToggle {
+    display: inline-flex;
+    border-radius: 999px;
+    background: rgba(15, 23, 42, 0.06);
+    padding: 3px;
+    gap: 3px;
+    align-self: flex-start;
+  }
+
+  .tradeModalIntentButton {
+    border: none;
+    background: transparent;
+    color: rgba(15, 23, 42, 0.6);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    padding: 7px 14px;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: background-color 160ms ease, color 160ms ease;
+  }
+
+  .tradeModalIntentButton:focus-visible {
+    outline: 2px solid rgba(37, 99, 235, 0.5);
+    outline-offset: 1px;
+  }
+
+  .tradeModalIntentActive {
+    background: #0f172a;
+    color: #ffffff;
+  }
+
+  .tradeModalSideSelector {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-2);
+  }
+
+  .tradeModalSideButton {
+    border: none;
+    padding: 12px clamp(var(--space-3), 2.5vw, var(--space-4));
+    border-radius: 14px;
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-1);
+    cursor: pointer;
+    background: rgba(15, 23, 42, 0.05);
+    color: #0f172a;
+    transition: background-color 150ms ease, color 150ms ease, transform 150ms ease;
+  }
+
+  .tradeModalSideButton:focus-visible {
+    outline: 2px solid rgba(37, 99, 235, 0.5);
+    outline-offset: 2px;
+  }
+
+  .tradeModalSideActiveYes {
+    background: color-mix(in srgb, var(--color-success) 14%, transparent);
+    color: var(--color-success);
+    transform: translateY(-1px);
+  }
+
+  .tradeModalSideActiveNo {
+    background: color-mix(in srgb, var(--color-danger) 16%, transparent);
+    color: var(--color-danger);
+    transform: translateY(-1px);
+  }
+
+  .tradeModalFieldLabel {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: rgba(15, 23, 42, 0.5);
+  }
+
+  .tradeModalSelect {
+    width: 100%;
+    padding: 10px 14px;
+    border-radius: 10px;
+    border: 1px solid rgba(15, 23, 42, 0.12);
+    font-size: var(--font-size-sm);
+    background: #ffffff;
+  }
+
+  .tradeModalInput {
+    width: 100%;
+    padding: 12px 14px;
+    border-radius: 10px;
+    border: 1px solid rgba(15, 23, 42, 0.14);
+    font-size: clamp(17px, 1.8vw, 20px);
+    font-weight: 600;
+    color: #0f172a;
+  }
+
+  .tradeModalInput:focus-visible,
+  .tradeModalSelect:focus-visible {
+    outline: 2px solid rgba(37, 99, 235, 0.4);
+    outline-offset: 2px;
+  }
+
+  .tradeModalMetrics {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-3);
+    background: rgba(15, 23, 42, 0.04);
+    border-radius: 14px;
+  }
+
+  .tradeModalMetricLabel {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: rgba(15, 23, 42, 0.54);
+    margin: 0;
+  }
+
+  .tradeModalMetricValue {
+    font-size: clamp(20px, 2.4vw, 24px);
+    font-weight: 700;
+    margin: 0;
+    color: #0f172a;
+  }
+
+  .tradeModalFooter {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    padding: 0 clamp(var(--space-4), 3.5vw, var(--space-5)) clamp(var(--space-5), 4vw, var(--space-6));
+  }
+
+  .tradeModalConfirm {
+    border: none;
+    border-radius: 12px;
+    padding: 14px;
+    background: #2563eb;
+    color: #ffffff;
+    font-size: var(--font-size-sm);
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background-color 160ms ease, transform 160ms ease;
+  }
+
+  .tradeModalConfirm:hover,
+  .tradeModalConfirm:focus-visible {
+    background: #1d4ed8;
+  }
+
+  .tradeModalConfirm:active {
+    transform: translateY(1px);
+  }
+
+  .tradeModalSecondary {
+    border: 1px solid rgba(15, 23, 42, 0.16);
+    background: transparent;
+    border-radius: 12px;
+    padding: 12px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: rgba(15, 23, 42, 0.7);
+    cursor: pointer;
+  }
+
+  .tradeModalSecondary:hover,
+  .tradeModalSecondary:focus-visible {
+    background: rgba(15, 23, 42, 0.06);
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes scaleIn {
+    from {
+      opacity: 0;
+      transform: translateY(12px) scale(0.98);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  @media (max-width: 900px) {
+    .detailContent {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      width: 100%;
+    }
+
+    .heroCard {
+      grid-template-columns: 1fr;
+      gap: clamp(var(--space-4), 4vw, var(--space-6));
+    }
+
+    .heroIdentity {
+      position: static;
+      top: auto;
+      box-shadow: none;
+      width: 100%;
+      justify-self: stretch;
+    }
+
+    .metrics {
+      width: 100%;
+      justify-content: space-between;
+    }
+  }
+
+  @media (max-width: 767px) {
+    .layout {
+      padding-inline: clamp(12px, 6vw, 20px);
+    }
+
+    .detailContent > * + * {
+      margin-block-start: clamp(var(--space-4), 8vw, var(--space-5));
+    }
+
+    .heroCard {
+      gap: var(--space-3);
+      padding-block-start: clamp(var(--space-3), 6vw, var(--space-4));
+    }
+
+    .heroIdentity {
+      gap: var(--space-3);
+    }
+
+    .cover {
+      width: clamp(70px, 24vw, 96px);
+      height: clamp(70px, 24vw, 96px);
+    }
+
+    .identityBody h1 {
+      font-size: clamp(20px, 5.4vw, 28px);
+    }
+
+    .summary {
+      font-size: 0.95rem;
+      line-height: 1.45;
+    }
+
+    .chartCard {
+      padding-block-end: var(--space-3);
+    }
+
+    .chartCard h2 {
+      font-size: 1.1rem;
+    }
+
+    .multiOptionList {
+      padding-inline: clamp(var(--space-3), 6vw, var(--space-4));
+      gap: 0.6rem;
+    }
+
+    .multiOptionRow {
+      column-gap: clamp(0.35rem, 1.2vw, 0.6rem);
+    }
+
+    .multiOptionName {
+      font-size: clamp(16px, 4.4vw, 20px);
+    }
+
+    .multiOptionProbability {
+      font-size: clamp(14px, 3.6vw, 16px);
+    }
+
+    .multiOptionButton {
+      min-width: 84px;
+      height: 32px;
+      padding: 6px 14px;
+      font-size: 0.85rem;
+      letter-spacing: 0.04em;
+      border-radius: 12px;
+    }
+
+    .actionButtons {
+      gap: var(--space-2);
+      padding-inline: clamp(var(--space-3), 6vw, var(--space-4));
+      margin-block-start: clamp(var(--space-3), 6vw, var(--space-4));
+    }
+
+    .actionButton {
+      padding: 10px clamp(18px, 5vw, 24px);
+      min-height: 40px;
+      font-size: clamp(16px, 4.8vw, 20px);
+    }
+
+    .rulesPanel {
+      padding-block: clamp(var(--space-3), 6vw, var(--space-4));
+    }
+  }
+
+  @media (max-width: 640px) {
+    .actionButtons {
+      flex-direction: column;
+      gap: var(--space-3);
+      padding-inline: clamp(var(--space-3), 5vw, var(--space-5));
+      margin-block-start: clamp(var(--space-3), 5vw, var(--space-4));
+    }
+
+    .actionButton {
+      width: 100%;
+      justify-content: center;
+      gap: var(--space-2);
+    }
+
+    .actionPrice {
+      font-size: clamp(18px, 4.5vw, 22px);
+    }
+
+    .tradeModalOverlay {
+      padding: var(--space-3);
+    }
+
+    .tradeModal {
+      width: 100%;
+      border-radius: 16px;
+    }
+
+    .tradeModalBody {
+      padding-inline: clamp(var(--space-4), 6vw, var(--space-5));
+    }
+
+    .tradeModalMetrics {
+      grid-template-columns: 1fr;
+      gap: var(--space-2);
+    }
+
+    .tradeModalFooter {
+      padding-inline: clamp(var(--space-4), 6vw, var(--space-5));
+    }
+  }
+}

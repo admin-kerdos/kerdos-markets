@@ -1,0 +1,11 @@
+@layer components {
+  .label {
+    display: inline-flex;
+    align-items: center;
+    font-size: var(--font-size-xs);
+    font-weight: 600;
+    color: var(--color-text-muted);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+}

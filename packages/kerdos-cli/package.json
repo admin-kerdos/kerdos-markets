@@ -1,0 +1,21 @@
+{
+  "name": "@kerdos/cli",
+  "version": "0.1.0",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "demo:local": "node --loader ts-node/esm --no-warnings src/demo-local.ts",
+    "demo:stress": "node --loader ts-node/esm --no-warnings src/stress-local.ts"
+  },
+  "dependencies": {
+    "@coral-xyz/anchor": "0.31.1",
+    "@kerdos/sdk": "file:../kerdos-sdk",
+    "@solana/spl-token": "0.3.11",
+    "@solana/web3.js": "1.98.4"
+  },
+  "devDependencies": {
+    "ts-node": "10.9.2",
+    "typescript": "5.9.3"
+  }
+}

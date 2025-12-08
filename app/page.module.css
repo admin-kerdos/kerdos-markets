@@ -1,0 +1,29 @@
+@layer components {
+  .page {
+    min-height: 100dvh;
+    background: var(--color-bg);
+    color: var(--color-text);
+  }
+
+  .shell {
+    padding-block-start: 0;
+    padding-block-end: clamp(var(--space-6), 8vw, var(--space-9));
+  }
+
+  .layout {
+    display: flex;
+    flex-direction: column;
+    gap: clamp(var(--space-6), 6vw, var(--space-9));
+    box-sizing: border-box;
+    width: min(100%, 1370px);
+    margin-inline: auto;
+    padding-inline: clamp(18px, 3.4vw, 36px);
+  }
+
+  @media (max-width: 1280px) and (min-width: 768px) {
+    .layout {
+      width: min(100%, 1180px);
+      padding-inline: clamp(16px, 3vw, 32px);
+    }
+  }
+}

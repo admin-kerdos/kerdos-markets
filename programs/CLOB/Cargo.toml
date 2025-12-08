@@ -1,0 +1,27 @@
+[package]
+name = "kerdos_markets"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "kerdos_markets"
+crate-type = ["cdylib", "lib", "staticlib"]
+
+[features]
+default = []
+no-entrypoint = []
+cpi = ["no-entrypoint"]
+idl-build = ["anchor-lang/idl-build", "anchor-spl/idl-build"]
+
+anchor-debug = []
+custom-heap = []
+custom-panic = []
+no-idl = []
+no-log-ix-name = []
+
+[dependencies]
+anchor-lang = { version = "0.31.1", features = ["init-if-needed"] }
+anchor-spl = "0.31.1"
+
+solana-system-interface = "1.0.0"
+solana-sdk-ids = "2.2.1"

@@ -1,0 +1,298 @@
+@layer components {
+  .card {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 260px) minmax(0, 1fr);
+    grid-template-rows: auto auto;
+    grid-template-areas:
+      "media body"
+      "media footer";
+    gap: var(--space-5);
+    padding: var(--space-4);
+    border-radius: var(--radius-lg);
+    background: var(--color-surface-elevated);
+    border: 1px solid color-mix(in srgb, var(--color-border) 70%, transparent);
+    box-shadow: var(--shadow-card);
+    transition:
+      transform var(--transition-base),
+      box-shadow var(--transition-base),
+      border-color var(--transition-base);
+    min-height: 220px;
+  }
+
+  .card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 26px 60px rgba(5, 9, 26, 0.55);
+    border-color: var(--color-border-strong);
+  }
+
+  .card:focus-within {
+    border-color: var(--color-focus);
+    box-shadow:
+      0 0 0 2px var(--color-bg),
+      0 0 0 4px var(--color-focus);
+  }
+
+  .media {
+    grid-area: media;
+    border-radius: calc(var(--radius-lg) - 6px);
+    overflow: hidden;
+    background: var(--color-surface-muted);
+    min-height: 220px;
+    display: flex;
+  }
+
+  .media img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .body {
+    grid-area: body;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    min-height: 0;
+  }
+
+  .topline {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2);
+  }
+
+  .status {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1);
+    padding: var(--space-1) var(--space-2);
+    border-radius: 999px;
+    font-size: var(--font-size-xs);
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .statusLive {
+    background: color-mix(in srgb, var(--color-success) 25%, transparent);
+    color: var(--color-success-contrast);
+    border: 1px solid color-mix(in srgb, var(--color-success) 60%, transparent);
+  }
+
+  .statusPending {
+    background: color-mix(in srgb, var(--color-danger) 12%, transparent);
+    color: var(--color-danger-contrast);
+    border: 1px solid color-mix(in srgb, var(--color-danger) 38%, transparent);
+  }
+
+  .timestamp {
+    margin-left: auto;
+    font-size: var(--font-size-xs);
+    color: var(--color-text-subtle);
+  }
+
+  .title {
+    margin: 0;
+    font-size: var(--font-size-lg);
+    font-weight: 700;
+    line-height: var(--line-height-snug);
+    letter-spacing: -0.01em;
+  }
+
+  .summary {
+    margin: 0;
+    font-size: var(--font-size-base);
+    line-height: var(--line-height-regular);
+    color: var(--color-text-muted);
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .metrics {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-3);
+    margin: 0;
+    padding: 0;
+  }
+
+  .metricItem {
+    display: grid;
+    gap: var(--space-1);
+  }
+
+  .metricLabel {
+    margin: 0;
+    font-size: var(--font-size-xs);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--color-text-subtle);
+  }
+
+  .metricValue {
+    margin: 0;
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+    color: var(--color-text);
+  }
+
+  .footer {
+    grid-area: footer;
+    align-self: end;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-3);
+  }
+
+  .action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    border-radius: var(--radius-md);
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    transition:
+      background var(--transition-base),
+      box-shadow var(--transition-base),
+      transform var(--transition-short);
+  }
+
+  .actionYes {
+    background: var(--color-success);
+    color: var(--color-success-contrast);
+  }
+
+  .actionYes:hover {
+    background: var(--color-success-strong);
+    box-shadow: var(--shadow-soft);
+    transform: translateY(-1px);
+  }
+
+  .actionYes:active {
+    background: var(--color-success-active);
+    transform: translateY(0);
+  }
+
+  .actionNo {
+    background: var(--color-danger);
+    color: var(--color-danger-contrast);
+  }
+
+  .actionNo:hover {
+    background: var(--color-danger-strong);
+    box-shadow: var(--shadow-soft);
+    transform: translateY(-1px);
+  }
+
+  .actionNo:active {
+    background: var(--color-danger-active);
+    transform: translateY(0);
+  }
+
+  .action:focus-visible {
+    box-shadow:
+      0 0 0 2px var(--color-bg),
+      0 0 0 4px var(--color-focus);
+    outline: none;
+  }
+
+  @media (max-width: 1023px) {
+    .card {
+      grid-template-columns: minmax(0, 220px) minmax(0, 1fr);
+      gap: var(--space-4);
+      min-height: 200px;
+    }
+  }
+
+  @media (max-width: 767px) {
+    .card {
+      grid-template-columns: minmax(0, 1fr);
+      grid-template-areas:
+        "media"
+        "body"
+        "footer";
+      min-height: auto;
+    }
+
+    .media {
+      min-height: 200px;
+    }
+  }
+
+  @media (max-width: 767px) {
+    .card {
+      gap: var(--space-3);
+      padding: var(--space-3);
+    }
+
+    .media {
+      min-height: 180px;
+      border-radius: calc(var(--radius-lg) - 8px);
+    }
+
+    .body {
+      gap: var(--space-2);
+    }
+
+    .topline {
+      gap: var(--space-1);
+    }
+
+    .status {
+      padding: 0.2rem 0.45rem;
+      font-size: 11px;
+    }
+
+    .timestamp {
+      font-size: 11px;
+    }
+
+    .title {
+      font-size: 1rem;
+    }
+
+    .summary {
+      font-size: 0.9rem;
+      line-height: 1.45;
+    }
+
+    .metrics {
+      gap: var(--space-2);
+    }
+
+    .metricValue {
+      font-size: 0.85rem;
+    }
+
+    .footer {
+      gap: var(--space-2);
+    }
+
+    .action {
+      min-height: 36px;
+      font-size: 0.85rem;
+      letter-spacing: 0.01em;
+    }
+  }
+
+  @media (max-width: 599px) {
+    .card {
+      padding: var(--space-2);
+    }
+
+    .action {
+      min-height: 34px;
+    }
+
+    .metrics {
+      grid-template-columns: repeat(1, minmax(0, 1fr));
+    }
+  }
+}

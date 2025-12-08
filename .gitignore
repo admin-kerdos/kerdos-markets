@@ -1,0 +1,56 @@
+# OS / Editor files
+.DS_Store
+*.swp
+.vscode/
+.idea/
+
+# Build outputs
+.next/
+app/.next/
+dist/
+dist-tests/
+build/
+out/
+app/out/
+target/
+target/idl/
+idl/
+programs/**/target/
+programs/test-ledger/
+test-ledger/
+.anchor/
+programs/**/tests/.fingerprint/
+
+# Dependencies
+node_modules/
+pnpm-lock.yaml
+
+# Rust artifacts
+**/Cargo.lock
+
+# Environment / secrets
+*.env
+*.env.*
+.env*
+*.pem
+*.key
+*.crt
+**/*id.json
+**/*keypair.json
+
+# Logs / coverage
+*.log
+coverage/
+.mocha/
+.validator-stress/
+
+# Cache
+.cache/
+*.tmp
+*.tsbuildinfo
+
+# JSON (allowlist specific configs)
+**/*.json
+!**/package.json
+!**/tsconfig.json
+!**/Cargo.toml

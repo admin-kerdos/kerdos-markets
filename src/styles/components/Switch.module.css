@@ -1,0 +1,65 @@
+@layer components {
+  .root {
+    appearance: none;
+    position: relative;
+    width: 44px;
+    height: 24px;
+    border-radius: 999px;
+    border: none;
+    background: color-mix(in srgb, var(--color-divider) 60%, transparent);
+    cursor: pointer;
+    transition:
+      background var(--transition-base),
+      box-shadow var(--transition-base);
+  }
+
+  .root::after {
+    content: "";
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 18px;
+    height: 18px;
+    border-radius: 999px;
+    background: var(--color-surface-elevated);
+    box-shadow: 0 4px 10px rgba(5, 9, 26, 0.38);
+    transition:
+      transform var(--transition-base),
+      background var(--transition-base);
+  }
+
+  .root:checked {
+    background: var(--color-brand);
+    box-shadow: 0 6px 16px color-mix(in srgb, var(--color-brand) 45%, transparent);
+  }
+
+  .root:checked::after {
+    transform: translateX(18px);
+    background: var(--color-brand-contrast);
+  }
+
+  .root:focus-visible {
+    outline: none;
+    box-shadow:
+      0 0 0 2px var(--color-bg),
+      0 0 0 4px var(--color-focus);
+  }
+
+  @media (max-width: 767px) {
+    .root {
+      width: 36px;
+      height: 20px;
+    }
+
+    .root::after {
+      top: 2px;
+      left: 2px;
+      width: 16px;
+      height: 16px;
+    }
+
+    .root:checked::after {
+      transform: translateX(16px);
+    }
+  }
+}

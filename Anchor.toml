@@ -1,0 +1,15 @@
+[workspace]
+members = ["programs/CLOB"]
+
+[programs.localnet]
+kerdos_markets = "DjcqZWPwPaB6EwnMXNdcgxkFk26ub6t6FXdSDE7aK3Sb"
+
+[registry]
+url = "https://anchor.projectserum.com"
+
+[provider]
+cluster = "Localnet"
+wallet = "~/.config/solana/id.json"
+
+[scripts]
+test = "vitest run programs/CLOB/tests --runInBand"

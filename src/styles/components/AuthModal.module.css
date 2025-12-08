@@ -1,0 +1,408 @@
+@layer components {
+  .backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(5, 7, 31, 0.72);
+    backdrop-filter: blur(6px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: clamp(var(--space-4), 8vw, var(--space-6));
+    z-index: 10000;
+  }
+
+  .modal {
+    width: min(420px, 100%);
+    border-radius: 18px;
+    background: var(--color-surface-elevated);
+    border: 1px solid color-mix(in srgb, var(--color-border) 65%, transparent);
+    box-shadow: 0 26px 68px rgba(5, 9, 26, 0.5);
+    color: var(--color-text);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    padding: clamp(var(--space-4), 5vw, var(--space-5));
+    position: relative;
+  }
+
+  .header {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+
+  .title {
+    margin: 0;
+    font-size: clamp(1.15rem, 4vw, 1.35rem);
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+
+  .actions {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+
+  .providerButton {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+    width: 100%;
+    border-radius: 14px;
+    padding: 0.75rem 1rem;
+    font-size: 0.95rem;
+    font-weight: 600;
+    border: 1px solid color-mix(in srgb, var(--color-border) 65%, transparent);
+    background: var(--color-surface);
+    color: var(--color-text);
+    cursor: pointer;
+    transition:
+      transform var(--transition-short),
+      box-shadow var(--transition-base),
+      border-color var(--transition-base),
+      background var(--transition-base);
+  }
+
+  .divider {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    color: var(--color-text-muted);
+    font-size: 0.85rem;
+    letter-spacing: 0.08em;
+    text-transform: lowercase;
+  }
+
+  .dividerLine {
+    flex: 1;
+    height: 1px;
+    background: color-mix(in srgb, var(--color-border) 70%, transparent);
+  }
+
+  .dividerLabel {
+    font-weight: 600;
+    color: var(--color-text-muted);
+  }
+
+  .emailRow {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    background: color-mix(in srgb, var(--color-surface) 87%, transparent);
+    border: 1px solid color-mix(in srgb, var(--color-border) 70%, transparent);
+    border-radius: 14px;
+    padding: 0.55rem 0.75rem;
+    flex-wrap: nowrap;
+  }
+
+  .emailInput {
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--color-text);
+    font-size: 0.9rem;
+    padding: 0;
+    min-width: 0;
+    flex: 1 1 auto;
+  }
+
+  .emailInput:focus-visible {
+    outline: none;
+  }
+
+  .emailRow:focus-within {
+    border-color: color-mix(in srgb, #d97706 85%, transparent);
+    box-shadow: 0 0 0 2px color-mix(in srgb, #d97706 18%, transparent);
+  }
+
+  .emailInput::placeholder {
+    color: color-mix(in srgb, var(--color-text-muted) 85%, transparent);
+  }
+
+  .emailButton {
+    border: none;
+    border-radius: 12px;
+    padding: 0.4rem 0.9rem;
+    background: color-mix(in srgb, #d97706 92%, transparent);
+    color: #fffefc;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition:
+      transform var(--transition-short),
+      box-shadow var(--transition-base),
+      filter var(--transition-base);
+    flex: 0 0 auto;
+  }
+
+  .emailButton:disabled {
+    opacity: 0.6;
+    cursor: progress;
+  }
+
+  .emailButton[data-disabled="true"] {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  .emailButton:not(:disabled):hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-soft);
+    filter: brightness(1.02);
+  }
+
+  .emailButton:focus-visible {
+    outline: none;
+    box-shadow:
+      0 0 0 2px var(--color-bg),
+      0 0 0 4px var(--color-focus);
+  }
+
+  .walletRow {
+    display: flex;
+    justify-content: center;
+    gap: var(--space-2);
+  }
+
+  .walletButton {
+    width: 46px;
+    height: 46px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    border: 1px solid color-mix(in srgb, var(--color-border) 65%, transparent);
+    background: var(--color-surface);
+    color: inherit;
+    cursor: pointer;
+    transition:
+      transform var(--transition-short),
+      box-shadow var(--transition-base),
+      border-color var(--transition-base),
+      background var(--transition-base);
+  }
+
+  .walletButton:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-soft);
+    border-color: var(--color-brand);
+  }
+
+  .walletButton:focus-visible {
+    outline: none;
+    box-shadow:
+      0 0 0 2px var(--color-bg),
+      0 0 0 4px var(--color-focus);
+  }
+
+  .walletIcon {
+    display: inline-flex;
+    width: 20px;
+    height: 20px;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .walletImage {
+    width: 22px;
+    height: 22px;
+    object-fit: contain;
+  }
+
+  .inlineFeedback {
+    margin: -0.1rem 0 0;
+    color: var(--color-danger);
+    font-size: 0.78rem;
+    text-align: center;
+  }
+
+  .globalFeedback {
+    margin: 0;
+    margin-top: -0.15rem;
+    color: var(--color-danger);
+    font-size: 0.8rem;
+    text-align: center;
+  }
+
+  .toast {
+    position: absolute;
+    top: clamp(8px, 2vw, 16px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: color-mix(in srgb, var(--color-surface) 92%, transparent);
+    border: 1px solid color-mix(in srgb, var(--color-border) 70%, transparent);
+    box-shadow: var(--shadow-soft);
+    padding: 0.45rem 0.9rem;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    color: var(--color-danger);
+    pointer-events: none;
+  }
+
+  .srOnly {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  .footerLinks {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.45rem;
+    color: var(--color-text-muted);
+    font-size: 0.78rem;
+    margin-top: var(--space-2);
+  }
+
+  .footerLink {
+    color: inherit;
+    text-decoration: none;
+    transition: color var(--transition-base), text-decoration-color var(--transition-base);
+  }
+
+  .footerLink:hover,
+  .footerLink:focus-visible {
+    text-decoration: underline;
+  }
+
+  .footerSeparator {
+    color: inherit;
+  }
+
+  .emailSuccess {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-2);
+    background: color-mix(in srgb, var(--color-surface) 87%, transparent);
+    border: 1px solid color-mix(in srgb, var(--color-border) 70%, transparent);
+    border-radius: 14px;
+    padding: 0.55rem 0.75rem;
+  }
+
+  .emailSuccessMessage {
+    font-size: 0.84rem;
+    color: var(--color-text);
+    text-align: left;
+    flex: 1 1 auto;
+  }
+
+  .emailSuccessMessage strong {
+    font-weight: 600;
+  }
+
+  .emailResendButton {
+    border: none;
+    border-radius: 12px;
+    padding: 0.4rem 0.85rem;
+    background: color-mix(in srgb, #d97706 92%, transparent);
+    color: #fffefc;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition:
+      transform var(--transition-short),
+      box-shadow var(--transition-base),
+      filter var(--transition-base);
+    flex: 0 0 auto;
+  }
+
+  .emailResendButton[aria-disabled="true"] {
+    opacity: 0.6;
+    cursor: progress;
+  }
+
+  .emailResendButton[data-disabled="true"] {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  .emailResendButton:not([aria-disabled="true"]):hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-soft);
+    filter: brightness(1.02);
+  }
+
+  .emailResendButton:focus-visible {
+    outline: none;
+    box-shadow:
+      0 0 0 2px var(--color-bg),
+      0 0 0 4px var(--color-focus);
+  }
+
+  .providerButton:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-soft);
+    border-color: var(--color-brand);
+  }
+
+  .providerButton:focus-visible {
+    outline: none;
+    box-shadow:
+      0 0 0 2px var(--color-bg),
+      0 0 0 4px var(--color-focus);
+  }
+
+  .providerIcon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+  }
+
+  .closeButton {
+    position: absolute;
+    top: clamp(8px, 2vw, 16px);
+    right: clamp(8px, 2vw, 16px);
+    border: none;
+    background: transparent;
+    color: var(--color-text-subtle);
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 999px;
+  }
+
+  .closeButton:hover {
+    color: var(--color-text);
+  }
+
+  @media (max-width: 599px) {
+    .modal {
+      padding: var(--space-4);
+      border-radius: 16px;
+    }
+
+    .actions {
+      gap: var(--space-2);
+    }
+
+    .emailButton {
+      padding: 0.35rem 0.75rem;
+      font-size: 0.78rem;
+    }
+
+    .walletRow {
+      gap: var(--space-2);
+    }
+
+    .walletButton {
+      width: 44px;
+      height: 44px;
+    }
+
+    .providerButton {
+      padding: 0.7rem 0.9rem;
+      font-size: 0.9rem;
+    }
+  }
+}

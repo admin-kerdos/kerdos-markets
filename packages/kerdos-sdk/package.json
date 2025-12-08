@@ -1,0 +1,32 @@
+{
+  "name": "@kerdos/sdk",
+  "version": "0.1.0",
+  "private": false,
+  "type": "module",
+  "main": "dist/index.js",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./browser": {
+      "types": "./dist/index.browser.d.ts",
+      "import": "./dist/index.browser.js"
+    },
+    "./node": {
+      "types": "./dist/index.node.d.ts",
+      "import": "./dist/index.node.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "dependencies": {
+    "@coral-xyz/anchor": "0.31.1",
+    "@solana/spl-token": "0.4.7",
+    "@solana/web3.js": "1.98.4",
+    "bn.js": "5.2.1"
+  }
+}
